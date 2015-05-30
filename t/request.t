@@ -3,7 +3,6 @@
 use v6;
 
 use Test;
-use IO::String;
 use Spackle::Request;
 
 my $input = 'a+b=d&one+two+three+four=1234';
