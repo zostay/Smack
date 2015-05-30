@@ -1,0 +1,15 @@
+{
+    "name" : "Spackle",
+    "version" : "*",
+    "description" : "Another Plack thing for Perl 6",
+    "author" : "Andrew Sterling Hanenkamp",
+    "provides" : {
+        "Spackle::Request": "lib/Spackle/Request.pm6",
+    },
+    "depends" : [ 
+        "Hash::MultiValue", 
+        "HTTP::Headers", 
+        "URI::Encode" 
+    ],
+    "source-url" : "git://github.com/zostay/Spackle.git"
+}
