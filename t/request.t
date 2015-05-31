@@ -7,8 +7,8 @@ use Spackle::Request;
 
 my $input = 'a+b=d&one+two+three+four=1234';
 
-my $tmpfile = $*SPEC.tmpdir
-    ~ $*USER ~ '.' ~ ([~] ('A'..'Z').roll(8)) ~ '.' ~ $*PID;
+my $tmpfile = $*TMDPIR
+    ~ '/' ~ $*USER ~ '.' ~ ([~] ('A'..'Z').roll(8)) ~ '.' ~ $*PID;
 $tmpfile.IO.spurt($input);
 
 END { unlink $tmpfile.IO }
