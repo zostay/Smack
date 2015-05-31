@@ -35,29 +35,35 @@ method logger          is rw { %!env<psgix.logger> }
 method cookies returns Hash {
     return {} unless self.Cookie;
 
-    my @cookies = self.Cookie.Str.comb(/<-[ ; , ]>/).grep(/'='/);
+    my @cookies = self.Cookie.Str.comb(/<-[ ; , ]>+/).grep(/'='/);
     my %cookies = @cookies.map(*.trim.split('=', 2)).map({ uri_decode($_) });
     return %cookies;
 }
 
-method query-parameters {
+method query-parameters(Spackle::Request:D: Str $s?) {
     unless %!env<spackle.request.query>.defined {
-        %!env{'spackle.request.query'} := Hash::MultiValue.from-pairs(self!parse-query);
+        %!env<spackle.request.query> := Hash::MultiValue.from-pairs(self!parse-query);
     }
 
-    %!env<spackle.request.query>;
+    # Kinda dumb...
+    if $s.defined {
+        %!env<spackle.request.query>($s);
+    }
+    else {
+        %!env<spackle.request.query>;
+    }
 }
 
 method !parse-urlencoded-string($qs) {
     return [] unless $qs.defined;
 
-    my @qs = do for $qs.comb(/<-[ & ; ]>/) {
+    my @qs = do for $qs.comb(/<-[ & ; ]>+/) {
         when / '=' / {
-            my ($key, $value) = .split(/ '=' /, 2).map({ uri_decode( .subst(/ '+' /, ' ')) });
-            $key => $value
+            my ($key, $value) = .split(/ '=' /, 2).map({ uri_decode( .subst(/ '+' /, ' ', :g)) });
+            ~$key => ~$value
         }
         default {
-            uri_decode( .subst(/ '+' /, ' ') ) => Str
+            uri_decode( .subst(/ '+' /, ' ', :g) ) => Str but True
         }
     }
 
@@ -68,27 +74,29 @@ method !parse-query {
     self!parse-urlencoded-string(%!env<QUERY_STRING>);
 }
 
-method raw-content returns Buf {
+method raw-content returns Blob {
     my $fh     = self.input;
-    my $length = self.Content-Length.Int;
+    my $length = self.Content-Length;
 
-    if $fh.defined && $length.defined {
-        LEAVE {
-            $fh.seek(0, 0) if %!env<psgix.input.buffered>;
+    if $fh.defined && $length.defined && $length.Int > 0 {
+        { # WHY?
+            LEAVE {
+                $fh.seek(0, 0) if %!env<psgix.input.buffered>;
+            }
+
+            $fh.read($length.Int);
         }
-
-        $fh.read($length);
     }
 
     else {
-        ''
+        ''.encode
     }
 }
 
 method content {
     warn "decoding content with non-text Content-Type and no defined charset"
         unless self.Content-Type.is-text 
-            || self.Content-Type.primary eq 'form/x-www-urlencoded' # this OK too
+            || self.Content-Type.primary eq 'application/x-www-form-urlencoded' # this OK too
             || self.Content-Type.charset.defined;
 
     # RFC 2616 says ISO-8859-1 is assumed when no charset is given
@@ -101,7 +109,8 @@ has HTTP::Headers $.headers handles * = self!build-headers;
 
 method !build-headers {
     my $headers = HTTP::Headers.new;
-    for %!env.grep(*.key ~~ rx:i/^ [ HTTP | CONTENT ] /).kv -> $k, $v {
+    for %!env.kv -> $k, $v {
+        next unless $k ~~ /^ [ HTTP | CONTENT ] /;
         my $name = $k.subst(/^ HTTPS? _ /, '');
         $headers.header($name, :quiet) = $v;
     }
@@ -109,19 +118,24 @@ method !build-headers {
     return $headers;
 }
 
-method body-parameters {
+method body-parameters(Spackle::Request:D: Str $s?) {
     unless %!env<spackle.request.body> {
-        warn "reading parameters from body, but Content-Type is not form/x-www-urlencoded"
-            unless self.Content-Type.primary eq 'form/x-www-urlencoded';
+        warn "reading parameters from body, but Content-Type is not application/x-www-form-urlencoded"
+            unless self.Content-Type.primary eq 'application/x-www-form-urlencoded';
 
 
         %!env<spackle.request.body> = Hash::MultiValue.from-pairs(self!parse-urlencoded-string(self.content));
     }
 
-    %!env<spackle.request.body>;
+    if $s.defined {
+        %!env<spackle.request.body>($s);
+    }
+    else {
+        %!env<spackle.request.body>;
+    }
 }
 
-method parameters {
+method parameters(Spackle::Request:D: Str $s?) {
     unless %!env<spackle.request.merged> {
         %!env<spackle.request.merged> = Hash::MultiValue.from-pairs(
             self.query-parameters.all-pairs,
@@ -129,7 +143,19 @@ method parameters {
         )
     }
 
-    %!env<spackle.request.merged>;
+    if $s.defined {
+        %!env<spackle.request.merged>($s);
+    }
+    else {
+        %!env<spackle.request.merged>;
+    }
 }
 
-method param { self.parameters }
+method param(Spackle::Request:D: Str $s?) { 
+    if $s.defined {
+        self.parameters($s)
+    }
+    else {
+        self.parameters
+    }
+}
