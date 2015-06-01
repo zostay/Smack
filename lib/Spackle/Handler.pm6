@@ -3,4 +3,5 @@ unit role Spackle::Handler;
 has Int $.port;
 has Str $.host;
 
-method run(&app) { ... }
+# Should be a stub...
+method run(&app) { }
