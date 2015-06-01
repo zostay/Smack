@@ -8,6 +8,7 @@
     },
     "depends" : [ 
         "Hash::MultiValue", 
+        "HTTP::Easy",
         "HTTP::Headers", 
         "URI::Encode" 
     ],
