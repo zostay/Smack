@@ -15,7 +15,7 @@ use HTTP::Headers;
     my $promise = $s.start;
 
     # Give it a second
-    sleep 1;
+    sleep 5;
 
     ok($s.started, 'server has started');
 
