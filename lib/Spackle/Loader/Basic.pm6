@@ -9,7 +9,7 @@ method watch(*@paths) { }
 method guess { 
     return %!env<SPACKLE_SERVER> if %!env<SPACKLE_SERVER>;
 
-    return 'HTTP::Easy';
+    return 'Standalone';
 }
 
 multi method load-server(Str $server, %options) returns Spackle::Handler {

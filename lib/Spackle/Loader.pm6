@@ -7,6 +7,7 @@ has &.app is rw;
 
 method watch(*@paths) { ... }
 
+# Seems to be broken or I don't understand it.
 #multi method load-server(Str $server, %options) returns Spackle::Handler { ... }
 #multi method load-server(%options) returns Spackle::Handler { ... }
 
