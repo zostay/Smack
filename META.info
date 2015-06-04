@@ -7,9 +7,12 @@
         "Spackle::Request": "lib/Spackle/Request.pm6"
     },
     "depends" : [ 
+        "DateTime::Format",
         "Hash::MultiValue", 
+        "HTTP::Client",
         "HTTP::Easy",
         "HTTP::Headers", 
+        "HTTP::Status",
         "URI::Encode" 
     ],
     "source-url" : "git://github.com/zostay/Spackle.git"
