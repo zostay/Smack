@@ -173,7 +173,7 @@ method handle-connection(%env, $conn, &app) {
 method handle-response($res, $conn) {
     my $status-msg = get_http_status_msg($res[0]);
 
-    $conn.write("HTTP/1.0 $res[0] $status-msg".encode);
+    $conn.write("HTTP/1.0 $res[0] $status-msg\x0d\x0a".encode);
     $conn.write("{.key}: {.value}\x0d\x0a".encode) for @($res[1]);
     $conn.write("\x0d\x0a".encode);
 
