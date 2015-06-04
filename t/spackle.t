@@ -6,20 +6,29 @@ use Test;
 use HTTP::Client;
 use HTTP::Headers;
 
+constant $PORT = 47383;
+
 {
     my $client = HTTP::Client.new;
 
-    my $s = Proc::Async.new($*EXECUTABLE, '-Ilib', 'bin/spackle', '-a=t/app.psgi', '-o=localhost', '-p=47382');
-    $s.stdout.tap(-> $v { diag $v });
+    my $started = False;
+
+    my $s = Proc::Async.new($*EXECUTABLE, '-Ilib', 'bin/spackle', '-a=t/app.psgi', '-o=localhost', "-p=$PORT");
+    $s.stdout.tap(-> $v { $started ||= $v ~~ /Starting/; diag $v });
     $s.stderr.tap(-> $v { diag $v });
     my $promise = $s.start;
 
     # Give it a second
-    sleep 5;
+    my $wait-count = 0;
+    until $started {
+        sleep 1;
+        die "server startup took too long" if $wait-count++ > 60;
+    }
+    diag "Server took $wait-count seconds(ish) to start.";
 
     ok($s.started, 'server has started');
 
-    my $response = $client.get('http://localhost:47382/');
+    my $response = $client.get("http://localhost:$PORT/");
     ok($response.success, 'successfully made a request');
 
     is($response.status, 200, 'returned 200');
