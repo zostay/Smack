@@ -9,13 +9,13 @@ use HTTP::Headers;
 {
     my $client = HTTP::Client.new;
 
-    my $s = Proc::Async.new($*EXECUTABLE, '-Ilib', 't/server.pl6', '--port=47382');
+    my $s = Proc::Async.new($*EXECUTABLE, '-Ilib', 'bin/spackle', '-a=t/app.psgi', '-o=localhost', '-p=47382');
     $s.stdout.tap(-> $v { diag $v });
     $s.stderr.tap(-> $v { diag $v });
     my $promise = $s.start;
 
     # Give it a second
-    sleep 1;
+    sleep 5;
 
     ok($s.started, 'server has started');
 
