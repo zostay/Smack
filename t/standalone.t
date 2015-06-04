@@ -24,7 +24,8 @@ constant $PORT = 47382;
         sleep 1;
         die "server startup took too long" if $wait-count++ > 60;
     }
-    diag "Server took $wait-count seconds(ish) to start.";
+    sleep 1;
+    diag "Server took {$wait-count+1} seconds(ish) to start.";
 
     ok($s.started, 'server has started');
 
