@@ -170,7 +170,12 @@ method handle-connection(%env, $conn, &app) {
     self.handle-response($res, $conn);
 }
 
-method handle-response($res, $conn) {
+multi method handle-response(Promise $promised-res, $conn) {
+    my $res = await $promised-res;
+    self.handle-response($res);
+}
+
+multi method handle-response(Positional $res, $conn) {
     my $status-msg = get_http_status_msg($res[0]);
 
     $conn.write("HTTP/1.0 $res[0] $status-msg\x0d\x0a".encode);
@@ -185,10 +190,9 @@ method handle-response($res, $conn) {
             }
         }
 
-        when .^can('get') && .^can('close') {
-            while my $line = .get {
-                $line = $line.encode if $line ~~ Str;
-                $conn.write($line) if $line.chars;
+        when Channel {
+            for .list -> $blob {
+                $conn.write($blob) if $blob.elems;
             }
             .close;
         }
