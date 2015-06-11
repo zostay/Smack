@@ -40,10 +40,10 @@ method accept-loop(&app) {
             'psgi.run_once'        => False,
             'psgi.multithread'     => True,
             'psgi.multiprocess'    => False,
-            'psgi.streaming'       => False,
+            'psgi.streaming'       => True,
             'psgi.nonblocking'     => False,
-            'psgix.input.buffered' => True,
-            'psgix.io'             => $conn,
+            'psgi.input.buffered'  => True,
+            'psgi.errors.buffered' => False,
             ;
 
         #$*SCHEDULER.cue: {
