@@ -34,7 +34,7 @@ method accept-loop(&app) {
             SERVER_NAME            => $!host,
             SCRIPT_NAME            => '',
             REMOTE_ADDR            => $conn.local_address,
-            'psgi.version'         => [ 1, 1 ],
+            'psgi.version'         => Version.new('0.1.Draft'),
             'psgi.errors'          => $*ERR,
             'psgi.url_scheme'      => 'http',
             'psgi.run_once'        => False,
@@ -44,6 +44,7 @@ method accept-loop(&app) {
             'psgi.nonblocking'     => False,
             'psgi.input.buffered'  => True,
             'psgi.errors.buffered' => False,
+            'psgi.encoding'        => 'UTF-8',
             ;
 
         #$*SCHEDULER.cue: {
@@ -172,29 +173,45 @@ method handle-connection(%env, $conn, &app) {
 
 multi method handle-response(Promise $promised-res, $conn) {
     my $res = await $promised-res;
-    self.handle-response($res);
+    self.handle-response($res, $conn);
 }
 
 multi method handle-response(Positional $res, $conn) {
     my $status-msg = get_http_status_msg($res[0]);
 
+    # Header SHOULD be ASCII, but we'll treat it as UTF-8 just to be flexible
+    # and avoid errors on our end. 
     $conn.write("HTTP/1.0 $res[0] $status-msg\x0d\x0a".encode);
     $conn.write("{.key}: {.value}\x0d\x0a".encode) for @($res[1]);
     $conn.write("\x0d\x0a".encode);
 
+    # Detect encoding
+    my $ct = $res[1].first(*.key.lc eq 'content-type');
+    my $charset = $ct.value.comb(/<-[;]>/)».trim.first(*.starts-with("charset="));
+    $charset.=substr(8) if $charset;
+    $charset //= 'UTF-8';
+
     given $res[2] {
         when Positional { 
             for @($_) {
-                $_ = $_.encode if $_ ~~ Str;
+                $_ = $_.encode($charset) if $_ ~~ Str;
                 $conn.write($_);
             }
+            $conn.close;
         }
 
         when Channel {
-            for .list -> $blob {
-                $conn.write($blob) if $blob.elems;
+            loop {
+                my $v = .receive;
+                $v = $v.encode($charset) if $v ~~ Str;
+                $conn.write($v) if $v.elems;
             }
-            .close;
+
+            CATCH {
+                when X::Channel::ReceiveOnClosed {
+                    $conn.close;
+                }
+            }
         }
 
         # Needs to be smarter
