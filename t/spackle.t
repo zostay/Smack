@@ -6,14 +6,15 @@ use Test;
 use HTTP::Client;
 use HTTP::Headers;
 
-constant $PORT = 47383;
+constant $PORT = 46382;
 
-{
+for <app delayed streaming>.kv -> $i, $app {
+    my $port = $PORT + $i;
     my $client = HTTP::Client.new;
 
     my $started = False;
 
-    my $s = Proc::Async.new($*EXECUTABLE, '-Ilib', 'bin/spackle', '-a=t/app.psgi', '-o=localhost', "-p=$PORT");
+    my $s = Proc::Async.new($*EXECUTABLE, '-Ilib', 'bin/spackle', "-a=t/$app.psgi", '-o=localhost', "-p=$port");
     $s.stdout.tap(-> $v { $started ||= $v ~~ /Starting/; diag $v });
     $s.stderr.tap(-> $v { diag $v });
     my $promise = $s.start;
@@ -29,7 +30,7 @@ constant $PORT = 47383;
 
     ok($s.started, 'server has started');
 
-    my $response = $client.get("http://localhost:$PORT/");
+    my $response = $client.get("http://localhost:$port/");
     ok($response.success, 'successfully made a request');
 
     is($response.status, 200, 'returned 200');

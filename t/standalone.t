@@ -8,12 +8,13 @@ use HTTP::Headers;
 
 constant $PORT = 47382;
 
-for <app delayed streaming> -> $app {
+for <app delayed streaming>.kv -> $i, $app {
+    my $port = $PORT + $i;
     my $client = HTTP::Client.new;
 
     my $started = False;
 
-    my $s = Proc::Async.new($*EXECUTABLE, '-Ilib', 't/server.pl6', "--port=$PORT", "--app=t/$app.psgi");
+    my $s = Proc::Async.new($*EXECUTABLE, '-Ilib', 't/server.pl6', "--port=$port", "--app=t/$app.psgi");
     $s.stdout.tap(-> $v { $started++ if $v ~~ /Starting/; diag $v });
     $s.stderr.tap(-> $v { diag $v });
     my $promise = $s.start;
@@ -29,7 +30,7 @@ for <app delayed streaming> -> $app {
 
     ok($s.started, 'server has started');
 
-    my $response = $client.get("http://localhost:$PORT/");
+    my $response = $client.get("http://localhost:$port/");
     ok($response.success, 'successfully made a request');
 
     is($response.status, 200, 'returned 200');
