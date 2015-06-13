@@ -49,7 +49,8 @@ for <app delayed streaming>.kv -> $i, $app {
             $s.kill(Signal::SIGKILL);
         };
 
-        my $status = await $promise;
+        my $status = await $promise
+            unless %*ENV<TEST_SPACKLE_SKIP_PROCESS_WAIT>;
         #is $status.exit, 0, 'exited ok';
     }
 }
