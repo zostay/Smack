@@ -42,7 +42,12 @@ for <app delayed streaming>.kv -> $i, $app {
     is $response.content, 'Hello World', 'Content is Hello World';
 
     LEAVE {
-        $s.kill('QUIT');
+        $s.kill(Signal::SIGQUIT);
+
+        start {
+            sleep 10;
+            $s.kill(Signal::SIGKILL);
+        };
 
         my $status = await $promise;
         #is $status.exit, 0, 'exited ok';
