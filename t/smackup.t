@@ -14,7 +14,7 @@ for <app delayed streaming>.kv -> $i, $app {
 
     my $started = False;
 
-    my $s = Proc::Async.new($*EXECUTABLE, '-Ilib', 'bin/spacklup', "-a=t/$app.psgi", '-o=localhost', "-p=$port");
+    my $s = Proc::Async.new($*EXECUTABLE, '-Ilib', 'bin/smackup', "-a=t/$app.psgi", '-o=localhost', "-p=$port");
     $s.stdout.tap(-> $v { $started ||= $v ~~ /Starting/; diag $v });
     $s.stderr.tap(-> $v { diag $v });
     my $promise = $s.start;
