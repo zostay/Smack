@@ -1,10 +1,10 @@
-unit class Spackle::Response;
+unit class Smack::Response;
 
 use v6;
 
 use HTTP::Headers;
 
-class X::Spackle::Response::MissingStatus is Exception { 
+class X::Smack::Response::MissingStatus is Exception {
     method message() { "missing status during finalize" }
 }
 
@@ -22,7 +22,7 @@ multi method redirect() {
 }
 
 method finalize() {
-    die X::Spackle::Response::MissingStatus.new
+    die X::Smack::Response::MissingStatus.new
         unless $!status.defined;
 
     my @headers = $!headers.for-PSGI;
@@ -34,7 +34,7 @@ method finalize() {
     ];
 }
 
-method to-app { 
+method to-app {
     my $self = self;
     sub { $self.finalize }
 }

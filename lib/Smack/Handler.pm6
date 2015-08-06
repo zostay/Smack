@@ -1,4 +1,4 @@
-unit role Spackle::Handler;
+unit role Smack::Handler;
 
 has Int $.port;
 has Str $.host;

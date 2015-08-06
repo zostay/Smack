@@ -1,7 +1,7 @@
-use Spackle::Handler;
+use Smack::Handler;
 
-unit class Spackle::Handler::HTTP::Easy
-does Spackle::Handler;
+unit class Smack::Handler::HTTP::Easy
+does Smack::Handler;
 
 use HTTP::Easy::PSGI;
 
@@ -10,7 +10,7 @@ has $.http = HTTP::Easy::PSGI.new(
     port => $!port,
 );
 
-method run(&app) { 
+method run(&app) {
     say "Starting on http://$!host:$!port/...";
-    $!http.handle(&app) 
+    $!http.handle(&app)
 }

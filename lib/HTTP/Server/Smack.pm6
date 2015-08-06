@@ -1,4 +1,4 @@
-unit class HTTP::Server::Spackle;
+unit class HTTP::Server::Smack;
 
 use URI::Encode;
 use DateTime::Format::RFC2822;
@@ -49,13 +49,13 @@ method accept-loop(&app) {
 
         #$*SCHEDULER.cue: {
             self.handle-connection(%env, $conn, &app);
-            LEAVE { 
+            LEAVE {
                 $conn.close;
             };
         #};
     }
 
-    LEAVE { 
+    LEAVE {
         $!listener.close;
         $!listener = IO::Socket::INET;
     }
@@ -132,7 +132,7 @@ method handle-connection(%env, $conn, &app) {
     }
 
     my $headers = HTTP::Headers.new;
-    for @headers { 
+    for @headers {
         my ($name, $value) = .split(/\s*:\s*/, 2);
         $headers.header($name, :quiet) = $value;
     }
@@ -150,7 +150,7 @@ method handle-connection(%env, $conn, &app) {
     unlink $tmp;
 
     my ($method, $uri, $proto) = $request-line.split(" ", 3);
-    
+
     %env<REQUEST_METHOD>  = $method;
     %env<REQUEST_URI>     = $uri;
     %env<SERVER_PROTOCOL> = $proto;
@@ -180,7 +180,7 @@ multi method handle-response(Positional $res, $conn) {
     my $status-msg = get_http_status_msg($res[0]);
 
     # Header SHOULD be ASCII, but we'll treat it as UTF-8 just to be flexible
-    # and avoid errors on our end. 
+    # and avoid errors on our end.
     $conn.write("HTTP/1.0 $res[0] $status-msg\x0d\x0a".encode);
     $conn.write("{.key}: {.value}\x0d\x0a".encode) for @($res[1]);
     $conn.write("\x0d\x0a".encode);
@@ -192,7 +192,7 @@ multi method handle-response(Positional $res, $conn) {
     $charset //= 'UTF-8';
 
     given $res[2] {
-        when Positional { 
+        when Positional {
             for @($_) {
                 $_ = $_.encode($charset) if $_ ~~ Str;
                 $conn.write($_);
@@ -220,4 +220,3 @@ multi method handle-response(Positional $res, $conn) {
         }
     }
 }
-

@@ -1,10 +1,10 @@
 {
-    "name" : "Spackle",
+    "name" : "Smack",
     "version" : "*",
-    "description" : "Another Plack thing for Perl 6",
+    "description" : "P6SGI Reference Implementation",
     "author" : "Andrew Sterling Hanenkamp",
     "provides" : {
-        "Spackle::Request": "lib/Spackle/Request.pm6"
+        "Smack::Request": "lib/Smack/Request.pm6"
     },
     "depends" : [ 
         "DateTime::Format",
@@ -15,5 +15,5 @@
         "HTTP::Status",
         "URI::Encode" 
     ],
-    "source-url" : "git://github.com/zostay/Spackle.git"
+    "source-url" : "git://github.com/zostay/Smack.git"
 }

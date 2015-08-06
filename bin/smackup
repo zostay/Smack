@@ -1,0 +1,5 @@
+#!perl6
+
+use v6;
+
+use Smack::Runner :MAIN;

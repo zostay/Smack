@@ -3,7 +3,7 @@
 use v6;
 
 use Test;
-use Spackle::Request;
+use Smack::Request;
 
 my $input = 'a+b=d&one+two+three+four=1234';
 
@@ -39,7 +39,7 @@ my %env =
     'psgi.streaming'       => False,
 ;
 
-my $req = Spackle::Request.new(%env);
+my $req = Smack::Request.new(%env);
 
 is $req.protocol, 'HTTP/1.1', 'protocol is good';
 is $req.method, 'GET', 'method is good';

@@ -1,4 +1,4 @@
-#!spackle
+#!smackup
 
 use v6;
 sub app(%env) {

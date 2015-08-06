@@ -3,9 +3,9 @@
 use v6;
 
 use Test;
-use Spackle::Response;
+use Smack::Response;
 
-my $res = Spackle::Response.new(:status(200), :body([ 'Hello World' ]));
+my $res = Smack::Response.new(:status(200), :body([ 'Hello World' ]));
 $res.Content-Type = 'text/plain';
 $res.Content-Type.charset = 'UTF-8';
 

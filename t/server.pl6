@@ -1,9 +1,9 @@
 #!perl6
 
-use HTTP::Server::Spackle;
+use HTTP::Server::Smack;
 
 sub MAIN(Int :$port, Str :$app) {
-    my $server = HTTP::Server::Spackle.new(
+    my $server = HTTP::Server::Smack.new(
         host => 'localhost',
         port => $port,
     );

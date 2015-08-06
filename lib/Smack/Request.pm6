@@ -1,4 +1,4 @@
-unit class Spackle::Request;
+unit class Smack::Request;
 
 use v6;
 
@@ -40,17 +40,17 @@ method cookies returns Hash {
     return %cookies;
 }
 
-method query-parameters(Spackle::Request:D: Str $s?) {
-    unless %!env<spackle.request.query>.defined {
-        %!env<spackle.request.query> := Hash::MultiValue.from-pairs(self!parse-query);
+method query-parameters(Smack::Request:D: Str $s?) {
+    unless %!env<smack.request.query>.defined {
+        %!env<smack.request.query> := Hash::MultiValue.from-pairs(self!parse-query);
     }
 
     # Kinda dumb...
     if $s.defined {
-        %!env<spackle.request.query>($s);
+        %!env<smack.request.query>($s);
     }
     else {
-        %!env<spackle.request.query>;
+        %!env<smack.request.query>;
     }
 }
 
@@ -95,7 +95,7 @@ method raw-content returns Blob {
 
 method content {
     warn "decoding content with non-text Content-Type and no defined charset"
-        unless self.Content-Type.is-text 
+        unless self.Content-Type.is-text
             || self.Content-Type.primary eq 'application/x-www-form-urlencoded' # this OK too
             || self.Content-Type.charset.defined;
 
@@ -118,40 +118,40 @@ method !build-headers {
     return $headers;
 }
 
-method body-parameters(Spackle::Request:D: Str $s?) {
-    unless %!env<spackle.request.body> {
+method body-parameters(Smack::Request:D: Str $s?) {
+    unless %!env<smack.request.body> {
         warn "reading parameters from body, but Content-Type is not application/x-www-form-urlencoded"
             unless self.Content-Type.primary eq 'application/x-www-form-urlencoded';
 
 
-        %!env<spackle.request.body> = Hash::MultiValue.from-pairs(self!parse-urlencoded-string(self.content));
+        %!env<smack.request.body> = Hash::MultiValue.from-pairs(self!parse-urlencoded-string(self.content));
     }
 
     if $s.defined {
-        %!env<spackle.request.body>($s);
+        %!env<smack.request.body>($s);
     }
     else {
-        %!env<spackle.request.body>;
+        %!env<smack.request.body>;
     }
 }
 
-method parameters(Spackle::Request:D: Str $s?) {
-    unless %!env<spackle.request.merged> {
-        %!env<spackle.request.merged> = Hash::MultiValue.from-pairs(
+method parameters(Smack::Request:D: Str $s?) {
+    unless %!env<smack.request.merged> {
+        %!env<smack.request.merged> = Hash::MultiValue.from-pairs(
             self.query-parameters.all-pairs,
             self.body-parameters.all-pairs,
         )
     }
 
     if $s.defined {
-        %!env<spackle.request.merged>($s);
+        %!env<smack.request.merged>($s);
     }
     else {
-        %!env<spackle.request.merged>;
+        %!env<smack.request.merged>;
     }
 }
 
-method param(Spackle::Request:D: Str $s?) { 
+method param(Smack::Request:D: Str $s?) {
     if $s.defined {
         self.parameters($s)
     }

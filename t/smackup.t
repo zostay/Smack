@@ -50,7 +50,7 @@ for <app delayed streaming>.kv -> $i, $app {
         };
 
         my $status = await $promise
-            unless %*ENV<TEST_SPACKLE_SKIP_PROCESS_WAIT>;
+            unless %*ENV<TEST_SMACK_SKIP_PROCESS_WAIT>;
         #is $status.exit, 0, 'exited ok';
     }
 }
