@@ -200,6 +200,7 @@ multi method handle-response(Positional $res, $conn) {
             $conn.close;
         }
 
+        # Custom Extension provided by Smack
         when Channel {
             loop {
                 my $v = .receive;
@@ -212,6 +213,29 @@ multi method handle-response(Positional $res, $conn) {
                     $conn.close;
                 }
             }
+        }
+
+        when Supply {
+            .tap(
+                -> $v {
+                    my Blob $buf = do given ($v) {
+                        when Str { $v.encode($charset) }
+                        when Blob { $v }
+                        default {
+                            warn "Application emitted unknown message.";
+                            Nil;
+                        }
+                    }
+                    $conn.write($buf) if $buf;
+                },
+                done => { $conn.close },
+                quit => {
+                    warn "Application quit with an exception: $_",
+                    $conn.close;
+                },
+            );
+            # TODO we probably should not wait here
+            .wait;
         }
 
         # Needs to be smarter
