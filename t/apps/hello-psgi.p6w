@@ -1,0 +1,12 @@
+#!smackup
+
+use v6;
+sub app(%env) {
+    -> &res {
+        my $w = res([ 200, [ Content-Type => 'text/plain' ] ]);
+
+        my @letters = "Hello World".comb(/./);
+        $w.write($_) for @letters;
+        $w.close;
+    }
+}

@@ -21,7 +21,7 @@ my @tests =
         is $response.content, 'Hello World', 'Content is Hello World';
     };
 
-for <hello hello-promise hello-channel hello-supply> -> $name {
+for <hello hello-promise hello-channel hello-supply hello-psgi> -> $name {
     my $app = $name ~ ".p6w";
     my $test-server = Smack::Test.new(:$app, :@tests);
     $test-server.run;

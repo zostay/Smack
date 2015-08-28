@@ -171,27 +171,51 @@ method handle-connection(%env, $conn, &app) {
     self.handle-response($res, $conn);
 }
 
+method send-header($status, @headers, $conn) returns Str:D {
+    my $status-msg = get_http_status_msg($status);
+
+    # Header SHOULD be ASCII or ISO-8859-1, in theory, right?
+    $conn.write("HTTP/1.0 $status $status-msg\x0d\x0a".encode('ISO-8859-1'));
+    $conn.write("{.key}: {.value}\x0d\x0a".encode('ISO-8859-1')) for @headers;
+    $conn.write("\x0d\x0a".encode('ISO-8859-1'));
+
+    # Detect encoding
+    my $ct = @headers.first(*.key.lc eq 'content-type');
+    my $charset = $ct.value.comb(/<-[;]>/)».trim.first(*.starts-with("charset="));
+    $charset.=substr(8) if $charset;
+    $charset //= 'UTF-8';
+}
+
 multi method handle-response(Promise $promised-res, $conn) {
     my $res = await $promised-res;
     self.handle-response($res, $conn);
 }
 
-multi method handle-response(Positional $res, $conn) {
-    my $status-msg = get_http_status_msg($res[0]);
+multi method handle-response(@res, $conn) {
+    my $charset = self.send-header(@res[0], @res[1], $conn);
 
-    # Header SHOULD be ASCII, but we'll treat it as UTF-8 just to be flexible
-    # and avoid errors on our end.
-    $conn.write("HTTP/1.0 $res[0] $status-msg\x0d\x0a".encode);
-    $conn.write("{.key}: {.value}\x0d\x0a".encode) for @($res[1]);
-    $conn.write("\x0d\x0a".encode);
+    given @res[2] {
+        when Supply {
+            .tap(
+                -> $v {
+                    my Blob $buf = do given ($v) {
+                        when Str { $v.encode($charset) }
+                        when Blob { $v }
+                        default {
+                            warn "Application emitted unknown message.";
+                            Nil;
+                        }
+                    }
+                    $conn.write($buf) if $buf;
+                },
+                done => { $conn.close },
+                quit => {
+                    warn "Application quit with an exception: $_",
+                    $conn.close;
+                },
+            );
+        }
 
-    # Detect encoding
-    my $ct = $res[1].first(*.key.lc eq 'content-type');
-    my $charset = $ct.value.comb(/<-[;]>/)».trim.first(*.starts-with("charset="));
-    $charset.=substr(8) if $charset;
-    $charset //= 'UTF-8';
-
-    given $res[2] {
         when Positional {
             for @($_) {
                 $_ = $_.encode($charset) if $_ ~~ Str;
@@ -215,32 +239,29 @@ multi method handle-response(Positional $res, $conn) {
             }
         }
 
-        when Supply {
-            .tap(
-                -> $v {
-                    my Blob $buf = do given ($v) {
-                        when Str { $v.encode($charset) }
-                        when Blob { $v }
-                        default {
-                            warn "Application emitted unknown message.";
-                            Nil;
-                        }
-                    }
-                    $conn.write($buf) if $buf;
-                },
-                done => { $conn.close },
-                quit => {
-                    warn "Application quit with an exception: $_",
-                    $conn.close;
-                },
-            );
-            # TODO we probably should not wait here
-            .wait;
-        }
-
         # Needs to be smarter
         default {
             die "Unknown body type. Unable to write response.";
         }
     }
+}
+
+multi method handle-response(&res, $conn) {
+    res(-> @res {
+        if @res.elems == 3 {
+            self.handle-response(@res, $conn);
+        }
+        elsif @res.elems == 2 {
+            my $charset = self.send-header(@res[0], @res[1], $conn);
+
+            class {
+                multi method write(Str $s)  { $conn.write($s.encode($charset)) }
+                multi method write(Blob $b) { $conn.write($b) }
+                multi method close()        { $conn.close }
+                }.new;
+        }
+        else {
+            die 'Wrong number of elements in application response.';
+        }
+    });
 }
