@@ -29,29 +29,30 @@ method setup-listener {
 method accept-loop(&app) {
     while my $conn = $!listener.accept {
 
+        my Promise $sent .= new;
+        my $vow = $sent.vow;
+
         my %env =
-            SERVER_PORT            => $!port,
-            SERVER_NAME            => $!host,
-            SCRIPT_NAME            => '',
-            REMOTE_ADDR            => $conn.local_address,
-            'psgi.version'         => Version.new('0.1.Draft'),
-            'psgi.errors'          => $*ERR,
-            'psgi.url_scheme'      => 'http',
-            'psgi.run_once'        => False,
-            'psgi.multithread'     => True,
-            'psgi.multiprocess'    => False,
-            'psgi.streaming'       => True,
-            'psgi.nonblocking'     => False,
-            'psgi.input.buffered'  => True,
-            'psgi.errors.buffered' => False,
-            'psgi.encoding'        => 'UTF-8',
+            SERVER_PORT             => $!port,
+            SERVER_NAME             => $!host,
+            SCRIPT_NAME             => '',
+            REMOTE_ADDR             => $conn.local_address,
+            'p6sgi.version'         => Version.new('0.3.Draft'),
+            'p6sgi.errors'          => $*ERR,
+            'p6sgi.url_scheme'      => 'http',
+            'p6sgi.run_once'        => False,
+            'p6sgi.multithread'     => True,
+            'p6sgi.multiprocess'    => False,
+            'p6sgi.streaming'       => True,
+            'p6sgi.nonblocking'     => False,
+            'p6sgi.input.buffered'  => True,
+            'p6sgi.errors.buffered' => False,
+            'p6sgi.encoding'        => 'UTF-8',
+            'p6sgix.output.sent'    => $sent,
             ;
 
         #$*SCHEDULER.cue: {
-            self.handle-connection(%env, $conn, &app);
-            LEAVE {
-                $conn.close;
-            };
+            self.handle-connection(%env, $conn, $vow, &app);
         #};
     }
 
@@ -68,7 +69,7 @@ method !temp-file {
     ($*TMPDIR ~ '/' ~ $*USER ~ '.' ~ ([~] ('A' .. 'Z').roll(8)) ~ '.' ~ $*PID).IO
 }
 
-method handle-connection(%env, $conn, &app) {
+method handle-connection(%env, $conn, $vow, &app) {
     my $res = [ 400, [ 'Content-Type' => 'text/plain' ], [ 'Bad Request' ] ];
 
     note "[debug] Received connection..." if $!debug;
@@ -105,7 +106,7 @@ method handle-connection(%env, $conn, &app) {
         return;
     }
 
-    my $header = $buf.subbuf(0, $header-end).decode('ascii');
+    my $header = $buf.subbuf(0, $header-end).decode('ISO-8859-1');
     $whole-buf = $buf.subbuf($header-end + 1);
 
     my @unfolded-headers = $header.split("\x0d\x0a");
@@ -121,7 +122,7 @@ method handle-connection(%env, $conn, &app) {
             # Bad Request, malformed headers
             else {
                 note '[error] Malformed headers in request';
-                self.handle-response($res, $conn);
+                self.handle-response($res, $conn, $vow);
                 return;
             }
         }
@@ -146,7 +147,7 @@ method handle-connection(%env, $conn, &app) {
     my $content = $whole-buf.decode($charset);
     my $tmp = self!temp-file;
     $tmp.spurt($content);
-    %env<psgi.input> = $tmp.open(:r);
+    %env<p6sgi.input> = $tmp.open(:r);
     unlink $tmp;
 
     my ($method, $uri, $proto) = $request-line.split(" ", 3);
@@ -168,7 +169,7 @@ method handle-connection(%env, $conn, &app) {
     }
 
     $res = app(%env);
-    self.handle-response($res, $conn);
+    self.handle-response($res, $conn, $vow);
 }
 
 method send-header($status, @headers, $conn) returns Str:D {
@@ -186,12 +187,12 @@ method send-header($status, @headers, $conn) returns Str:D {
     $charset //= 'UTF-8';
 }
 
-multi method handle-response(Promise $promised-res, $conn) {
+multi method handle-response(Promise $promised-res, $conn, $vow) {
     my $res = await $promised-res;
-    self.handle-response($res, $conn);
+    self.handle-response($res, $conn, $vow);
 }
 
-multi method handle-response(@res, $conn) {
+multi method handle-response(@res, $conn, $vow) {
     my $charset = self.send-header(@res[0], @res[1], $conn);
 
     given @res[2] {
@@ -208,20 +209,32 @@ multi method handle-response(@res, $conn) {
                     }
                     $conn.write($buf) if $buf;
                 },
-                done => { $conn.close },
+                done => { $conn.close; $vow.keep(Any) },
                 quit => {
-                    warn "Application quit with an exception: $_",
+                    my $x = $_;
                     $conn.close;
+                    CATCH {
+                        # this is stupid, IO::Socket needs better exceptions
+                        when "Not connected!" {
+                            # ignore it
+                        }
+                    }
+                    $vow.break($x);
                 },
             );
+
+            # stop here until done so the connection doesn't close
+            .wait;
         }
 
         when Positional {
             for @($_) {
-                $_ = $_.encode($charset) if $_ ~~ Str;
+                $_ = ~$_ unless $_ ~~ any(Blob, Str);
+                .=encode($charset) if $_ ~~ Str;
                 $conn.write($_);
             }
             $conn.close;
+            $vow.keep(Any);
         }
 
         # Custom Extension provided by Smack
@@ -235,6 +248,7 @@ multi method handle-response(@res, $conn) {
             CATCH {
                 when X::Channel::ReceiveOnClosed {
                     $conn.close;
+                    $vow.keep(Any);
                 }
             }
         }
@@ -246,10 +260,11 @@ multi method handle-response(@res, $conn) {
     }
 }
 
-multi method handle-response(&res, $conn) {
+multi method handle-response(&res, $conn, $vow) {
+    my Promise $waiter .= new;
     res(-> @res {
         if @res.elems == 3 {
-            self.handle-response(@res, $conn);
+            self.handle-response(@res, $conn, $vow);
         }
         elsif @res.elems == 2 {
             my $charset = self.send-header(@res[0], @res[1], $conn);
@@ -257,11 +272,14 @@ multi method handle-response(&res, $conn) {
             class {
                 multi method write(Str $s)  { $conn.write($s.encode($charset)) }
                 multi method write(Blob $b) { $conn.write($b) }
-                multi method close()        { $conn.close }
-                }.new;
+                multi method close()        { $conn.close; $waiter.keep; $vow.keep(Any) }
+            }.new;
         }
         else {
             die 'Wrong number of elements in application response.';
         }
     });
+
+    # pause or the connection will be closed prematurely
+    await $waiter;
 }
