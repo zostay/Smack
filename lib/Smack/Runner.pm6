@@ -4,12 +4,12 @@ use Smack::Handler;
 use Smack::Loader;
 
 sub MAIN(
-    Str  :a($app),
-    Str  :o($host),
-    Int  :p($port),
+    Str  :a(:$app),
+    Str  :o(:$host),
+    Int  :p(:$port),
 ) is export(:MAIN) {
     my %options;
-    %options<app>  = $app if $app;
+    %options<app>  = $app  if $app;
     %options<host> = $host if $host;
     %options<port> = $port if $port;
 

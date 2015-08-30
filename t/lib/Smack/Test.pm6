@@ -39,8 +39,6 @@ method start() {
     }
     sleep 1;
     self.diag("Server took {$wait-count+1} seconds(ish) to start.");
-
-    self.diag('server has started');
 }
 
 method run-tests() {
