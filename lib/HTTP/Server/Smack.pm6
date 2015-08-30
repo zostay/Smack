@@ -258,27 +258,3 @@ multi method handle-response(@res, $conn, $vow) {
         }
     }
 }
-
-multi method handle-response(&res, $conn, $vow) {
-    my Promise $waiter .= new;
-    res(-> @res {
-        if @res.elems == 3 {
-            self.handle-response(@res, $conn, $vow);
-        }
-        elsif @res.elems == 2 {
-            my $charset = self.send-header(@res[0], @res[1], $conn);
-
-            class {
-                multi method write(Str $s)  { $conn.write($s.encode($charset)) }
-                multi method write(Blob $b) { $conn.write($b) }
-                multi method close()        { $conn.close; $waiter.keep; $vow.keep(Any) }
-            }.new;
-        }
-        else {
-            die 'Wrong number of elements in application response.';
-        }
-    });
-
-    # pause or the connection will be closed prematurely
-    await $waiter;
-}

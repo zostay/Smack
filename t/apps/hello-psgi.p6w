@@ -1,6 +1,8 @@
 #!smackup
 
 use v6;
+use Smack::Middleware::PSGI;
+
 sub app(%env) {
     -> &res {
         my $w = res([ 200, [ Content-Type => 'text/plain' ] ]);
@@ -10,3 +12,5 @@ sub app(%env) {
         $w.close;
     }
 }
+
+Smack::Middleware::PSGI.wrap-that(&app);
