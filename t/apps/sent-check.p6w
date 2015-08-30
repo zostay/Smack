@@ -5,25 +5,18 @@ sub app(%env) {
     die "this application server does not support p6sgix.output.sent"
         unless %env<p6sgix.output.sent> ~~ Promise:D;
 
-    note "# HERE 1";
-
     state $sent-n-times = 0;
 
-    note "# HERE 2 ", %env<PATH_INFO>;
     if %env<PATH_INFO> eq '/check' {
-    note "# HERE 3";
         200, [ Content-Type => 'text/plain' ], [ $sent-n-times ];
     }
     else {
-    note "# HERE 4";
         200, [ Content-Type => 'text/plain' ], Supply.on-demand(-> $s {
             $s.emit('Hello World');
             $s.done;
-    note "# HERE 5";
 
             await %env<p6sgix.output.sent>;
             $sent-n-times++;
-    note "# HERE 6";
         });
     }
 }

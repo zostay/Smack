@@ -4,7 +4,7 @@ unit class Smack::Middleware::PSGI is Smack::Middleware;
 
 use v6;
 
-method CALL-ME(%env) {
+method call(%env) {
     my $encoding =
 
     my class InputWrapper {
