@@ -37,7 +37,7 @@ method accept-loop(&app) {
             SERVER_NAME             => $!host,
             SCRIPT_NAME             => '',
             REMOTE_ADDR             => $conn.local_address,
-            'p6sgi.version'         => Version.new('0.3.Draft'),
+            'p6sgi.version'         => Version.new('0.4.Draft'),
             'p6sgi.errors'          => $*ERR,
             'p6sgi.url-scheme'      => 'http',
             'p6sgi.run-once'        => False,
@@ -186,75 +186,42 @@ method send-header($status, @headers, $conn) returns Str:D {
     $charset //= 'UTF-8';
 }
 
-multi method handle-response(Promise $promised-res, $conn, $vow) {
-    my $res = await $promised-res;
-    self.handle-response($res, $conn, $vow);
+method handle-response(Promise(Any) $promise, $conn, $vow) {
+    $promise.then({
+        my (Int(Any) $status, @headers, Supply(Any) $body) := $promise.result;
+        self.handle-inner($status, @headers, $body, $conn, $vow);
+    });
 }
 
-multi method handle-response(@res, $conn, $vow) {
-    my $charset = self.send-header(@res[0], @res[1], $conn);
+method handle-inner(Int $status, @headers, Supply $body, $conn, $vow) {
+    my $charset = self.send-header($status, @headers, $conn);
 
-    given @res[2] {
-        when Supply {
-            .tap(
-                -> $v {
-                    my Blob $buf = do given ($v) {
-                        when Str { $v.encode($charset) }
-                        when Blob { $v }
-                        default {
-                            warn "Application emitted unknown message.";
-                            Nil;
-                        }
-                    }
-                    $conn.write($buf) if $buf;
-                },
-                done => { $conn.close; $vow.keep(Any) },
-                quit => {
-                    my $x = $_;
-                    $conn.close;
-                    CATCH {
-                        # this is stupid, IO::Socket needs better exceptions
-                        when "Not connected!" {
-                            # ignore it
-                        }
-                    }
-                    $vow.break($x);
-                },
-            );
-
-            # stop here until done so the connection doesn't close
-            .wait;
-        }
-
-        when Positional {
-            for @($_) {
-                $_ = ~$_ unless $_ ~~ any(Blob, Str);
-                .=encode($charset) if $_ ~~ Str;
-                $conn.write($_);
-            }
-            $conn.close;
-            $vow.keep(Any);
-        }
-
-        # Custom Extension provided by Smack
-        when Channel {
-            loop {
-                my $v = .receive;
-                $v = $v.encode($charset) if $v ~~ Str;
-                $conn.write($v) if $v.elems;
-            }
-
-            CATCH {
-                when X::Channel::ReceiveOnClosed {
-                    $conn.close;
-                    $vow.keep(Any);
+    $body.tap(
+        -> $v {
+            my Blob $buf = do given ($v) {
+                when Cool { $v.Str.encode($charset) }
+                when Blob { $v }
+                default {
+                    warn "Application emitted unknown message.";
+                    Nil;
                 }
             }
-        }
+            $conn.write($buf) if $buf;
+        },
+        done => { $conn.close; $vow.keep(Any) },
+        quit => {
+            my $x = $_;
+            $conn.close;
+            CATCH {
+                # this is stupid, IO::Socket needs better exceptions
+                when "Not connected!" {
+                    # ignore it
+                }
+            }
+            $vow.break($x);
+        },
+    );
 
-        # Needs to be smarter
-        default {
-            die "Unknown body type. Unable to write response.";
-        }
-    }
+    # stop here until done so the connection doesn't close
+    $body.wait;
 }

@@ -1,8 +1,0 @@
-#!smackup
-
-use v6;
-sub app(%env) {
-    Promise.start({
-        200, [ Content-Type => 'text/plain' ], [ "Hello World" ];
-    });
-}

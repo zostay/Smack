@@ -41,42 +41,44 @@ method call(%env) {
         ;
 
     do given &.app.(%env) {
-        when Positional { $_ }
+        when Positional { Promise.new(:result($_)) }
         when Callable {
             my @response;
 
-            .(-> @res {
-                if @res.elems == 3 {
-                    @response = @res;
-                }
-                elsif @res.elems == 2 {
-                    my Channel $q .= new;
+            start {
+                .(-> @res {
+                    if @res.elems == 3 {
+                        @response = @res;
+                    }
+                    elsif @res.elems == 2 {
+                        my Channel $q .= new;
 
-                    @response = @res[0, 1], Supply.on-demand(-> $s {
-                        loop {
-                            my $t = $q.receive;
-                            $s.emit($t);
-                        }
-
-                        CATCH {
-                            when X::Channel::ReceiveOnClosed {
-                                $s.done;
+                        @response = @res[0, 1], Supply.on-demand(-> $s {
+                            loop {
+                                my $t = $q.receive;
+                                $s.emit($t);
                             }
-                        }
-                    });
 
-                    my $writer = class {
-                        multi method write(Str $str) { $q.send($str) }
-                        multi method write(Blob $b)  { $q.send($b) }
-                        multi method close()         { $q.close }
-                    }.new;
-                }
-                else {
-                    die 'Wrong number of elements in application response.';
-                }
-            });
+                            CATCH {
+                                when X::Channel::ReceiveOnClosed {
+                                    $s.done;
+                                }
+                            }
+                        });
 
-            @response;
+                        my $writer = class {
+                            multi method write(Str $str) { $q.send($str) }
+                            multi method write(Blob $b)  { $q.send($b) }
+                            multi method close()         { $q.close }
+                        }.new;
+                    }
+                    else {
+                        die 'Wrong number of elements in application response.';
+                    }
+                });
+
+                @response;
+            }
         }
         default {
             die 'Unknown application response: ', .perl;
