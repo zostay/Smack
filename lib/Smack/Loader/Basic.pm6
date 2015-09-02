@@ -8,8 +8,8 @@ method watch(*@paths) { }
 
 method guess {
     return %!env<SMACK_SERVER> if %!env<SMACK_SERVER>;
-
-    return 'Standalone';
+    return 'CGI' if %!env<GATEWAY_INTERFACE>;
+    'Standalone';
 }
 
 multi method load-server(Str $server, %options) returns Smack::Handler {

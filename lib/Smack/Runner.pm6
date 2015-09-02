@@ -17,7 +17,7 @@ sub MAIN(
     $runner.run;
 }
 
-has Str $.app = 'app.psgi';
+has Str $.app = 'app.p6w';
 has Str $.host = '0.0.0.0';
 has Int $.port = 5000;
 has Str $!loader-name = 'Basic';
