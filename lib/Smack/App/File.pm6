@@ -11,6 +11,8 @@ has $.content-type;
 has $.encoding;
 has $.bytes-at-a-time = 8192;
 
+method should-handle($file) { $file.f }
+
 method call(%env) {
     start {
         my ($file, $path-info) = $.file // self.locate-file(%env);
