@@ -4,26 +4,26 @@ does Smack::Middleware;
 use v6;
 
 use HTTP::Headers;
+use Smack::Util;
 
 method call(%env) {
     return &.app(%env) if %env<SERVER_PROTOCOL> eq 'HTTP/1.0';
 
     &.app.(%env).then(-> $p {
-        my ($s, @headers, Supply(All) $body) = $p.result;
+        my ($s, @h, Supply(All) $body) = $p.result;
 
-        my $h = HTTP::Headers.new(@headers, :quiet);
-        return $p.result if $h<Content-Length> :exists || $h<Transfer-Encoding> :exists
+        my $headers = response-headers(@h, :%env);
+        return $p.result if any($headers<Content-Length Transfer-Encoding> :exists);
 
-        my $charset = $h.Content-Type.charset // %env<p6sgix.encoding>;
+        my $charset = response-encoding(:$headers, :%env);
 
         my $CRLF = "\x0d\x0a".encode($charset);
 
-        $h.Transfer-Encoding = 'chunked';
-        $s, @headers, Supply.on-demand(-> $b {
+        $headers.Transfer-Encoding = 'chunked';
+        $s, @h, Supply.on-demand(-> $b {
             $body.tap(
-                -> $chunk {
-                    $chunk.=Str.=encode($charset)
-                        unless $chunk ~~ Blob;
+                -> $chunk is copy {
+                    $chunk = stringify-encode($chunk, :$headers, :%env);
 
                     $b.emit(
                         [~] sprintf('%x', $chunk.bytes).encode($charset),
