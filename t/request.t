@@ -87,4 +87,4 @@ is $req.param{'one two three four'}, '1234', 'param one two three four is good';
 is $req.param('a b'), [ 'c', 'd' ], 'param a b actually contains both values';
 is $req.param.elems, 4, 'only 4 params in param';
 
-done;
+done-testing;

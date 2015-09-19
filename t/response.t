@@ -38,4 +38,4 @@ is-deeply($app.(), [
     [ 'Hello World' ],
 ], 'to-app works');
 
-done;
+done-testing;

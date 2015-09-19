@@ -29,4 +29,4 @@ my @tests =
 my $test-server = Smack::Test.new(:app('sent-check.p6w'), :@tests);
 $test-server.run;
 
-done;
+done-testing;

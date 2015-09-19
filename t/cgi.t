@@ -27,4 +27,4 @@ for <hello hello-supply hello-psgi> -> $name {
     is($msg, $expected, 'CGI output expected message');
 }
 
-done;
+done-testing;

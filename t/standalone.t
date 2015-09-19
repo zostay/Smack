@@ -29,4 +29,4 @@ for <hello hello-supply hello-psgi> -> $name {
     $test-server.run;
 }
 
-done;
+done-testing;
