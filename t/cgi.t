@@ -12,6 +12,8 @@ END_OF_EXPECTED
 $expected.=subst(/\n/, "\x0d\x0a", :g);
 $expected ~= "Hello World";
 
+todo 'CGI implemenation is incomplete.', 6;
+
 for <hello hello-supply hello-psgi> -> $name {
     %*ENV<GATEWAY_INTERFACE> = '1';
 
