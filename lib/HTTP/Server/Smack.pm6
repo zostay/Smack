@@ -29,29 +29,37 @@ method setup-listener {
 method accept-loop(&app) {
     while my $conn = $!listener.accept {
 
-        my Promise $sent .= new;
-        my $vow = $sent.vow;
+        my Promise $header-done-promise .= new;
+        my $header-done = $header-done-promise.vow;
+
+        my Promise $body-done-promise .= new;
+        my $body-done = $body-done-promise.vow;
+
+        my Promise $ready-promise .= new;
+        my $ready = $ready-promise.vow;
+
+        my $errors = Supply.new;
+        $errors.tap: -> $s { $*ERR.say($s) };
 
         my %env =
             SERVER_PORT             => $!port,
             SERVER_NAME             => $!host,
             SCRIPT_NAME             => '',
             REMOTE_ADDR             => $conn.local_address,
-            'p6sgi.version'         => Version.new('0.4.Draft'),
-            'p6sgi.errors'          => $*ERR,
+            'p6sgi.version'         => Version.new('0.5.Draft'),
+            'p6sgi.errors'          => $errors,
             'p6sgi.url-scheme'      => 'http',
             'p6sgi.run-once'        => False,
             'p6sgi.multithread'     => False,
             'p6sgi.multiprocess'    => False,
-            'p6sgi.nonblocking'     => False,
-            'p6sgi.input.buffered'  => True,
-            'p6sgi.errors.buffered' => True,
             'p6sgi.encoding'        => 'UTF-8',
-            'p6sgix.output.sent'    => $sent,
+            'p6sgi.ready'           => $ready-promise,
+            'p6sgix.header.done'    => $header-done-promise,
+            'p6sgix.body.done'      => $body-done-promise,
             ;
 
         #$*SCHEDULER.cue: {
-            self.handle-connection(%env, $conn, $vow, &app);
+            self.handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-done);
         #};
     }
 
@@ -68,7 +76,7 @@ method !temp-file {
     ($*TMPDIR ~ '/' ~ $*USER ~ '.' ~ ([~] ('A' .. 'Z').roll(8)) ~ '.' ~ $*PID).IO
 }
 
-method handle-connection(%env, $conn, $vow, &app) {
+method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-done) {
     my $res = [ 400, [ 'Content-Type' => 'text/plain' ], [ 'Bad Request' ] ];
 
     note "[debug] Received connection..." if $!debug;
@@ -101,7 +109,7 @@ method handle-connection(%env, $conn, $vow, &app) {
     # Header never ended!
     unless $header-end {
         note '[error] Header section does not end correctly';
-        self.handle-response($res, $conn);
+        self.handle-response($res, :$conn, :%env);
         return;
     }
 
@@ -121,7 +129,7 @@ method handle-connection(%env, $conn, $vow, &app) {
             # Bad Request, malformed headers
             else {
                 note '[error] Malformed headers in request';
-                self.handle-response($res, $conn, $vow);
+                self.handle-response($res, :$conn, :%env);
                 return;
             }
         }
@@ -140,14 +148,17 @@ method handle-connection(%env, $conn, $vow, &app) {
     my $charset = $headers.Content-Type.charset // 'ISO-8859-1';
     my $length  = $headers.Content-Length.Int;
 
-    $whole-buf = $conn.read($length - $whole-buf.elems)
-        if $length - $whole-buf.elems > 0;
-
-    my $content = $whole-buf.decode($charset);
-    my $tmp = self!temp-file;
-    $tmp.spurt($content);
-    %env<p6sgi.input> = $tmp.open(:r);
-    unlink $tmp;
+    # Continue consuming the body as soon as the app taps it
+    %env<p6sgi.input> = Supply.on-demand(-> $in {
+        my $remaining = $length - $whole-buf.bytes;
+        $in.emit($whole-buf) if $whole-buf.bytes > 0;
+        while my $buf = $conn.recv($remaining, :bin) {
+            $remaining -= $buf.bytes;
+            $in.emit($buf);
+            last unless $remaining > 0;
+        }
+        $in.close;
+    });
 
     my ($method, $uri, $proto) = $request-line.split(" ", 3);
 
@@ -168,7 +179,9 @@ method handle-connection(%env, $conn, $vow, &app) {
     }
 
     $res = app(%env);
-    self.handle-response($res, $conn, $vow);
+
+    # We stop here until the response is done beofre handling another request
+    await self.handle-response($res, :$conn, :%env, :$ready, :$header-done, :$body-done);
 }
 
 method send-header($status, @headers, $conn) returns Str:D {
@@ -186,17 +199,22 @@ method send-header($status, @headers, $conn) returns Str:D {
     $charset //= 'UTF-8';
 }
 
-method handle-response(Promise(Any) $promise, $conn, $vow) {
+method handle-response(Promise() $promise, :$conn, :%env, :$ready, :$header-done, :$body-done) {
     $promise.then({
-        my (Int(Any) $status, @headers, Supply(Any) $body) := $promise.result;
-        self.handle-inner($status, @headers, $body, $conn, $vow);
+        my (Int() $status, @headers, Supply() $body) := $promise.result;
+        self.handle-inner($status, @headers, $body, $conn, :$ready, :$header-done, :$body-done);
+
+        # consume and discard the bytes in the iput stream, just in case the app
+        # didn't read from it.
+        %env<p6sgi.input>.tap: -> $ { };
     });
 }
 
-method handle-inner(Int $status, @headers, Supply $body, $conn, $vow) {
+method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$header-done, :$body-done) {
     my $charset = self.send-header($status, @headers, $conn);
+    $header-done andthen $header-done.keep(True);
 
-    $body.tap(
+    $body.tap:
         -> $v {
             my Blob $buf = do given ($v) {
                 when Cool { $v.Str.encode($charset) }
@@ -205,10 +223,13 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, $vow) {
                     warn "Application emitted unknown message.";
                     Nil;
                 }
-            }
+            };
             $conn.write($buf) if $buf;
         },
-        done => { $conn.close; $vow.keep(Any) },
+        done => { 
+            $conn.close; 
+            $body-done andthen $body-done.keep(True);
+        },
         quit => {
             my $x = $_;
             $conn.close;
@@ -218,9 +239,10 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, $vow) {
                     # ignore it
                 }
             }
-            $vow.break($x);
+            $body-done andthen $body-done.break($x);
         },
-    );
+    ;
+    $ready andthen $ready.keep(True);
 
     # stop here until done so the connection doesn't close
     $body.wait;

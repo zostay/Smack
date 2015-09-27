@@ -5,8 +5,8 @@ sub app(%env) {
     state $sent-n-times = 0;
 
     start {
-        die "this application server does not support p6sgix.output.sent"
-            unless %env<p6sgix.output.sent> ~~ Promise:D;
+        die "this application server does not support p6sgix.body.done"
+            unless %env<p6sgix.body.done> ~~ Promise:D;
 
         if %env<PATH_INFO> eq '/check' {
             200, [ Content-Type => 'text/plain' ], [ $sent-n-times ];
@@ -16,7 +16,7 @@ sub app(%env) {
                 $s.emit('Hello World');
                 $s.done;
 
-                await %env<p6sgix.output.sent>;
+                await %env<p6sgix.body.done>;
                 $sent-n-times++;
             });
         }
