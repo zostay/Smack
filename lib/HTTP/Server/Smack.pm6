@@ -152,10 +152,12 @@ method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-don
     %env<p6sgi.input> = Supply.on-demand(-> $in {
         my $remaining = $length - $whole-buf.bytes;
         $in.emit($whole-buf) if $whole-buf.bytes > 0;
-        while my $buf = $conn.recv($remaining, :bin) {
-            $remaining -= $buf.bytes;
-            $in.emit($buf);
-            last unless $remaining > 0;
+        if $remaining > 0 {
+            while my $buf = $conn.recv($remaining, :bin) {
+                $remaining -= $buf.bytes;
+                $in.emit($buf);
+                last unless $remaining > 0;
+            }
         }
         $in.close;
     });
@@ -201,12 +203,12 @@ method send-header($status, @headers, $conn) returns Str:D {
 
 method handle-response(Promise() $promise, :$conn, :%env, :$ready, :$header-done, :$body-done) {
     $promise.then({
-        my (Int() $status, @headers, Supply() $body) := $promise.result;
-        self.handle-inner($status, @headers, $body, $conn, :$ready, :$header-done, :$body-done);
+        my (Int() $status, List() $headers, Supply() $body) := $promise.result;
+        self.handle-inner($status, $headers, $body, $conn, :$ready, :$header-done, :$body-done);
 
         # consume and discard the bytes in the iput stream, just in case the app
         # didn't read from it.
-        %env<p6sgi.input>.tap: -> $ { };
+        %env<p6sgi.input>.tap: -> $ { } if %env<p6sgi.input> ~~ Supply:D;
     });
 }
 
@@ -226,8 +228,8 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$heade
             };
             $conn.write($buf) if $buf;
         },
-        done => { 
-            $conn.close; 
+        done => {
+            $conn.close;
             $body-done andthen $body-done.keep(True);
         },
         quit => {

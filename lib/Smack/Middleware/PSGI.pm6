@@ -9,19 +9,45 @@ method call(%env) {
 
     my class InputWrapper {
         has $.input;
+
+        has $!buffer = buf8.new;
+        has Bool $!eof = False;
+        has Int $!read-head = 0;
+        has Channel $!pinger .= new;
+
+        submethod BUILD(:$!input) {
+            $!input.tap:
+                -> $b { $!buffer ~= $b; $!pinger.send(True); },
+                done => { $!eof = True; $!pinger.send(True); },
+            ;
+        }
+
         multi method read(Blob $buf is rw, $len, $offset = 0) {
-            $.input.seek($offset, 1);
-            $buf = $.input.read($len);
-            $buf.bytes;
+            while $!read-head >= $!buffer.elems {
+                return 0 if $!eof;
+                await $!pinger;
+            }
+
+            $buf = $!buffer.subbuf($!read-head + $offset, $len);
+            my $new-read-head = $!read-head + $offset + $len min $!buffer.elems;
+            my $bytes = $new-read-head - $!read-head;
+            $!read-head = $new-read-head;
+
+            $bytes;
         }
         multi method read($buf is rw, $len, $offset = 0) {
-            $.input.seek($offset, 1);
-            my $blob = $.input.read($len);
-            $buf = $blob.decode($encoding);
-            $blob.bytes;
+            callwith(Proxy.new(
+                FETCH => method ($blob) { $buf.encode($encoding) },
+                STORE => method ($blob) { $buf = $blob.decode($encoding) },
+            ) but Blob, $len, $offset);
         }
         multi method seek($pos, $whence = 0) {
-            $.input.seek($pos, $whence);
+            given $whence {
+                when 0 { $!read-head  = $pos }
+                when 1 { $!read-head += $pos }
+                when 2 { $!read-head  = $!buffer.elems + $pos }
+                default { die "illegal whence given to seek" }
+            }
         }
     }
 
@@ -53,7 +79,7 @@ method call(%env) {
                     elsif @res.elems == 2 {
                         my Channel $q .= new;
 
-                        @response = @res[0, 1], Supply.on-demand(-> $s {
+                        @response = @res[0, 1].Slip, Supply.on-demand(-> $s {
                             loop {
                                 my $t = $q.receive;
                                 $s.emit($t);
