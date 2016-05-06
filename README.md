@@ -32,7 +32,7 @@ The Perl 6 [Crust](https://github.com/tokuhirom/p6-Crust) project is a port of
 the older [PSGI
 specification](https://metacpan.org/pod/release/MIYAGAWA/PSGI-1.102/PSGI.pod)
 for Perl 5. The PSGI specification is a basically serial specification
-implemented around HTTP/1.0 and parts of HTTP/1.1. This has several weaknesse
+implemented around HTTP/1.0 and parts of HTTP/1.1. This has several weaknesses
 when it comes to supporting modern protocols, dealing with high-performance
 applications, and application portability. 
 
@@ -40,7 +40,8 @@ P6SGI aims to be a forward looking specification that incorporates built-in
 support for HTTP/2, WebSockets, and other concurrent and/or asynchronous
 web-related protocols. It also aims to better support high-performance
 applications and address the portability weaknesses in PSGI. Smack aims to be
-the reference implementation for P6SGI instead.
+the reference implementation for [P6SGI](https://github.com/zostay/P6SGI)
+instead.
 
 ## Participation
 
