@@ -46,7 +46,7 @@ method accept-loop(&app) {
             SERVER_NAME             => $!host,
             SCRIPT_NAME             => '',
             REMOTE_ADDR             => $conn.localhost,
-            'p6w.version'         => Version.new('0.5.Draft'),
+            'p6w.version'         => Version.new('0.7.Draft'),
             'p6w.errors'          => $errors,
             'p6w.url-scheme'      => 'http',
             'p6w.run-once'        => False,
