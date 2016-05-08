@@ -9,16 +9,16 @@ class X::Smack::Response::MissingStatus is Exception {
 }
 
 has Int $.status;
-has HTTP::Headers $.headers handles * = HTTP::Headers.new;
+has HTTP::Headers $.headers handles <header Content-Length Content-Type> = HTTP::Headers.new;
 has @.body = [];
 
 multi method redirect(Str $location, :$status = 302) {
     $!status = $status;
-    self.Location = $location;
+    self.headers.Location = $location;
 }
 
 multi method redirect() {
-    self.Location
+    self.headers.Location
 }
 
 method finalize() {
