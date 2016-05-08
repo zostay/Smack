@@ -6,19 +6,20 @@ sub app(%env) {
 
     start {
         die "this application server does not support p6sgix.body.done"
-            unless %env<p6sgix.body.done> ~~ Promise:D;
+            unless %env<p6wx.body.done> ~~ Promise:D;
 
         if %env<PATH_INFO> eq '/check' {
             200, [ Content-Type => 'text/plain' ], [ $sent-n-times ];
         }
         else {
-            200, [ Content-Type => 'text/plain' ], Supply.on-demand(-> $s {
-                $s.emit('Hello World');
-                $s.done;
+            200, [ Content-Type => 'text/plain' ], supply {
+                %env<p6wx.body.done>.then({;
+                    $sent-n-times++;
+                });
 
-                await %env<p6sgix.body.done>;
-                $sent-n-times++;
-            });
+                emit 'Hello World';
+                done;
+            }
         }
     }
 }

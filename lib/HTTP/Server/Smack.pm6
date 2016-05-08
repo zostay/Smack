@@ -38,24 +38,24 @@ method accept-loop(&app) {
         my Promise $ready-promise .= new;
         my $ready = $ready-promise.vow;
 
-        my $errors = Supply.new;
-        $errors.tap: -> $s { $*ERR.say($s) };
+        my $errors = Supplier.new;
+        $errors.Supply.tap: -> $s { $*ERR.say($s) };
 
         my %env =
             SERVER_PORT             => $!port,
             SERVER_NAME             => $!host,
             SCRIPT_NAME             => '',
-            REMOTE_ADDR             => $conn.local_address,
-            'p6sgi.version'         => Version.new('0.5.Draft'),
-            'p6sgi.errors'          => $errors,
-            'p6sgi.url-scheme'      => 'http',
-            'p6sgi.run-once'        => False,
-            'p6sgi.multithread'     => False,
-            'p6sgi.multiprocess'    => False,
-            'p6sgi.encoding'        => 'UTF-8',
-            'p6sgi.ready'           => $ready-promise,
-            'p6sgix.header.done'    => $header-done-promise,
-            'p6sgix.body.done'      => $body-done-promise,
+            REMOTE_ADDR             => $conn.localhost,
+            'p6w.version'         => Version.new('0.5.Draft'),
+            'p6w.errors'          => $errors,
+            'p6w.url-scheme'      => 'http',
+            'p6w.run-once'        => False,
+            'p6w.multithread'     => False,
+            'p6w.multiprocess'    => False,
+            'p6w.encoding'        => 'UTF-8',
+            'p6w.ready'           => $ready-promise,
+            'p6wx.header.done'    => $header-done-promise,
+            'p6wx.body.done'      => $body-done-promise,
             ;
 
         #$*SCHEDULER.cue: {
@@ -149,18 +149,17 @@ method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-don
     my $length  = $headers.Content-Length.Int;
 
     # Continue consuming the body as soon as the app taps it
-    %env<p6sgi.input> = Supply.on-demand(-> $in {
+    %env<p6w.input> = supply {
         my $remaining = $length - $whole-buf.bytes;
-        $in.emit($whole-buf) if $whole-buf.bytes > 0;
+        emit $whole-buf if $whole-buf.bytes > 0;
         if $remaining > 0 {
             while my $buf = $conn.recv($remaining, :bin) {
                 $remaining -= $buf.bytes;
-                $in.emit($buf);
+                emit $buf;
                 last unless $remaining > 0;
             }
         }
-        $in.close;
-    });
+    };
 
     my ($method, $uri, $proto) = $request-line.split(" ", 3);
 
@@ -208,7 +207,7 @@ method handle-response(Promise() $promise, :$conn, :%env, :$ready, :$header-done
 
         # consume and discard the bytes in the iput stream, just in case the app
         # didn't read from it.
-        %env<p6sgi.input>.tap: -> $ { } if %env<p6sgi.input> ~~ Supply:D;
+        %env<p6w.input>.tap if %env<p6w.input> ~~ Supply:D;
     });
 }
 
@@ -216,8 +215,8 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$heade
     my $charset = self.send-header($status, @headers, $conn);
     $header-done andthen $header-done.keep(True);
 
-    $body.tap:
-        -> $v {
+    react {
+        whenever $body -> $v {
             my Blob $buf = do given ($v) {
                 when Cool { $v.Str.encode($charset) }
                 when Blob { $v }
@@ -227,25 +226,25 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$heade
                 }
             };
             $conn.write($buf) if $buf;
-        },
-        done => {
-            $conn.close;
-            $body-done andthen $body-done.keep(True);
-        },
-        quit => {
-            my $x = $_;
-            $conn.close;
-            CATCH {
-                # this is stupid, IO::Socket needs better exceptions
-                when "Not connected!" {
-                    # ignore it
-                }
-            }
-            $body-done andthen $body-done.break($x);
-        },
-    ;
-    $ready andthen $ready.keep(True);
 
-    # stop here until done so the connection doesn't close
-    $body.wait;
+            LAST {
+                $conn.close;
+                $body-done andthen $body-done.keep(True);
+            }
+
+            QUIT {
+                my $x = $_;
+                $conn.close;
+                CATCH {
+                    # this is stupid, IO::Socket needs better exceptions
+                    when "Not connected!" {
+                        # ignore it
+                    }
+                }
+                $body-done andthen $body-done.break($x);
+            }
+        }
+
+        $ready andthen $ready.keep(True);
+    }
 }
