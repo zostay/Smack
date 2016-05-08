@@ -13,9 +13,10 @@ method call(%env) {
         has $!buffer = buf8.new;
         has Bool $!eof = False;
         has Int $!read-head = 0;
-        has Channel $!pinger .= new;
+        has Channel $!pinger;
 
         submethod BUILD(:$!input) {
+            $!pinger .= new;
             $!input.tap:
                 -> $b { $!buffer ~= $b; $!pinger.send(True); },
                 done => { $!eof = True; $!pinger.send(True); },
@@ -51,18 +52,18 @@ method call(%env) {
         }
     }
 
-    my $input = InputWrapper.new(input => %env<p6sgi.input>);
+    my $input = InputWrapper.new(input => %env<p6w.input>);
 
     # Install PSGI environment
     %env = %env,
         'psgi.version'      => [ 1, 1 ],
-        'psgi.url_scheme'   => %env<p6sgi.url-scheme>,
+        'psgi.url_scheme'   => %env<p6w.url-scheme>,
         'psgi.input'        => $input,
-        'psgi.errors'       => %env<p6sgi.errors>,
-        'psgi.multithread'  => %env<p6sgi.multithread>,
-        'psgi.multiprocess' => %env<p6sgi.multiprocess>,
-        'psgi.run_once'     => %env<p6sgi.run-once>,
-        'psgi.nonblocking'  => %env<p6sgi.nonblocking>,
+        'psgi.errors'       => %env<p6w.errors>,
+        'psgi.multithread'  => %env<p6w.multithread>,
+        'psgi.multiprocess' => %env<p6w.multiprocess>,
+        'psgi.run_once'     => %env<p6w.run-once>,
+        'psgi.nonblocking'  => %env<p6w.nonblocking>,
         'psgi.streaming'    => True,
         ;
 
