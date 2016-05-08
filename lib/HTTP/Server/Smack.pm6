@@ -42,18 +42,19 @@ method accept-loop(&app) {
         $errors.Supply.tap: -> $s { $*ERR.say($s) };
 
         my %env =
-            SERVER_PORT             => $!port,
-            SERVER_NAME             => $!host,
-            SCRIPT_NAME             => '',
-            REMOTE_ADDR             => $conn.localhost,
-            'p6w.version'         => Version.new('0.7.Draft'),
+            SERVER_PORT           => $!port,
+            SERVER_NAME           => $!host,
+            SCRIPT_NAME           => '',
+            REMOTE_ADDR           => $conn.localhost,
+            'p6w.version'         => v0.7.Draft,
             'p6w.errors'          => $errors,
             'p6w.url-scheme'      => 'http',
             'p6w.run-once'        => False,
             'p6w.multithread'     => False,
             'p6w.multiprocess'    => False,
-            'p6w.encoding'        => 'UTF-8',
+            'p6w.body.encoding'   => 'UTF-8',
             'p6w.ready'           => $ready-promise,
+            'p6w.protocol'        => set('http'),
             'p6wx.header.done'    => $header-done-promise,
             'p6wx.body.done'      => $body-done-promise,
             ;
@@ -176,7 +177,7 @@ method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-don
 
     for $headers.list -> $header {
         my $env-name = "HTTP_" ~ $header.name.uc.trans("-" => "_");
-        %env{$header} = $header.value;
+        %env{$env-name} = $header.value;
     }
 
     $res = app(%env);
