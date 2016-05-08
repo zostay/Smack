@@ -81,7 +81,7 @@ method raw-content returns Blob {
     if $fh.defined && $length.defined && $length.Int > 0 {
         { # WHY?
             LEAVE {
-                $fh.seek(0, 0) if %!env<psgix.input.buffered>;
+                $fh.seek(0) if %!env<psgix.input.buffered>;
             }
 
             $fh.read($length.Int);
@@ -105,7 +105,7 @@ method content {
     self.raw-content.decode($encoding);
 }
 
-has HTTP::Headers $.headers handles * = self!build-headers;
+has HTTP::Headers $.headers handles <header Content-Length Content-Type> = self!build-headers;
 
 method !build-headers {
     my $headers = HTTP::Headers.new;

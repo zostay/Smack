@@ -6,14 +6,15 @@
     "provides" : {
         "Smack::Request": "lib/Smack/Request.pm6"
     },
-    "depends" : [ 
+    "depends" : [
         "DateTime::Format",
-        "Hash::MultiValue", 
+        "Hash::MultiValue",
         "HTTP::Client",
         "HTTP::Easy",
-        "HTTP::Headers", 
+        "HTTP::Headers",
+        "HTTP::Parser",
         "HTTP::Status",
-        "URI::Encode" 
+        "URI::Encode"
     ],
     "source-url" : "git://github.com/zostay/Smack.git"
 }
