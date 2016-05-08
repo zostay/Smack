@@ -54,7 +54,7 @@ method accept-loop(&app) {
             'p6w.multiprocess'    => False,
             'p6w.body.encoding'   => 'UTF-8',
             'p6w.ready'           => $ready-promise,
-            'p6w.protocol'        => set('http'),
+            'p6w.protocol'        => 'http',
             'p6wx.header.done'    => $header-done-promise,
             'p6wx.body.done'      => $body-done-promise,
             ;
