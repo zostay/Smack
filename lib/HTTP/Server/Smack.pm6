@@ -12,7 +12,24 @@ has Bool $.debug = False;
 
 has $!listener;
 
-method run(&app) {
+my sub _errors {
+    my $errors = Supplier.new;
+    $errors.Supply.tap: -> $s { $*ERR.say($s) };
+    $errors;
+}
+
+has %!global =
+    'p6w.version'          => v0.7.Draft,
+    'p6w.errors'           => _errors,
+    'p6w.run-once'         => False,
+    'p6w.multithread'      => False,
+    'p6w.multiprocess'     => False,
+    'p6w.protocol.support' => set('request-response'),
+    'p6w.protocol.enabled' => set('request-response'),
+    ;
+
+method run(&app is copy) {
+    &app = app(%!global) if &app.returns ~~ Callable;
     self.setup-listener;
     self.accept-loop(&app);
 }
@@ -38,26 +55,23 @@ method accept-loop(&app) {
         my Promise $ready-promise .= new;
         my $ready = $ready-promise.vow;
 
-        my $errors = Supplier.new;
-        $errors.Supply.tap: -> $s { $*ERR.say($s) };
-
         my %env =
             SERVER_PORT           => $!port,
             SERVER_NAME           => $!host,
             SCRIPT_NAME           => '',
             REMOTE_ADDR           => $conn.localhost,
-            'p6w.version'         => v0.7.Draft,
-            'p6w.errors'          => $errors,
             'p6w.url-scheme'      => 'http',
-            'p6w.run-once'        => False,
-            'p6w.multithread'     => False,
-            'p6w.multiprocess'    => False,
             'p6w.body.encoding'   => 'UTF-8',
             'p6w.ready'           => $ready-promise,
             'p6w.protocol'        => 'http',
             'p6wx.header.done'    => $header-done-promise,
             'p6wx.body.done'      => $body-done-promise,
             ;
+
+        for %!global.keys -> $key {
+            next if %env{ $key }:exists;
+            %env{ $key } := %!global{ $key };
+        }
 
         #$*SCHEDULER.cue: {
             self.handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-done);

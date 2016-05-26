@@ -8,12 +8,14 @@ use HTTP::Headers;
 constant $BASE-PORT = 46382;
 my $port-iteration = 0;
 
+has Bool $.quiet = %*ENV<TEST_SMACK_QUIET> // True;
 has $.app is required;
 has $.port = $BASE-PORT + $port-iteration++;
 has $.skip-process-wait = %*ENV<TEST_SMACK_SKIP_PROCESS_WAIT>;
 has @.tests;
 has @.cmd = 'bin/smackup', '-a=t/apps/{app}', '-o=localhost', '-p={port}';
 
+has $.err = '';
 has $!started = False;
 has $!client = HTTP::Client.new;
 has $!server;
@@ -27,8 +29,8 @@ method !resolve-cmd() {
 method start() {
     self!resolve-cmd;
     $!server = Proc::Async.new($*EXECUTABLE, '-Ilib', |@.cmd);
-    $!server.stdout.tap(-> $v { $!started ||= $v ~~ /Starting/; self.diag($v) });
-    $!server.stderr.tap(-> $v { self.diag($v) });
+    $!server.stdout.tap(-> $v { $!started ||= $v ~~ /Starting/; self.diag($v) unless $!quiet });
+    $!server.stderr.tap(-> $v { $!err ~= $v; self.diag($v) unless $!quiet });
     $!promise = $!server.start;
 
     # Give it a second
