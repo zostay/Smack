@@ -22,6 +22,7 @@ for $test-server.err.lines {
     # fake TAP
     when /^ \s* "not "? "ok $i" >> [ \s* "#" \s* $<msg> = [ .* ] ]/ { pass($/<msg>) }
     when /^ \s* "#" / { #`{ ignore comments } }
+    when /^ \s* $/    { #`{ ignore blanks } }
     default { flunk($/<msg>) }
 }
 

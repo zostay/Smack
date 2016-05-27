@@ -17,8 +17,8 @@ method call(%env) {
         my $path = %.error-documents{$s};
         if $.subrequest {
             for %env.kv -> $key, $value {
-                unless $key ~~ /^p6sgi/ {
-                    %env{'p6sgix.errordocument.' ~ $key} = $value;
+                unless $key ~~ /^p6w/ {
+                    %env{'p6wx.errordocument.' ~ $key} = $value;
                 }
             }
 
@@ -45,7 +45,7 @@ method call(%env) {
             $h.Transfer-Encoding.remove;
             $h.Content-Type = Smack::MIME.mime-type($path);
 
-            @h = $h.for-P6SGI;
+            @h = $h.for-P6W;
 
             my $fh = open $path, :r;
             $s, @h, Supply.on-demand(-> $s {

@@ -1,7 +1,7 @@
 {
     "name" : "Smack",
     "version" : "*",
-    "description" : "P6SGI Reference Implementation",
+    "description" : "P6W Reference Implementation",
     "author" : "Andrew Sterling Hanenkamp",
     "provides" : {
         "Smack::Request": "lib/Smack/Request.pm6"
