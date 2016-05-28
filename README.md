@@ -1,4 +1,4 @@
-# Smack - Reference implementation of Perl 6 Standard Gateway Interface
+# Smack - Reference implementation of the Web API for Perl 6
 
 This aims to be the reference implementation of the P6W standard. The aims of
 this project include:
