@@ -16,14 +16,6 @@ my @tests =
 my $test-server = Smack::Test.new(:app<config-env.p6w>, :@tests);
 $test-server.run;
 
-my $i = 0;
-for $test-server.err.lines {
-    $i++;
-    # fake TAP
-    when /^ \s* "not "? "ok $i" >> [ \s* "#" \s* $<msg> = [ .* ] ]/ { pass($/<msg>) }
-    when /^ \s* "#" / { #`{ ignore comments } }
-    when /^ \s* $/    { #`{ ignore blanks } }
-    default { flunk($/<msg>) }
-}
+$test-server.treat-err-as-tap;
 
 done-testing;

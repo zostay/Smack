@@ -78,6 +78,19 @@ method run() {
     }
 }
 
+method treat-err-as-tap() {
+    use Test;
+    my $i = 0;
+    for self.err.lines {
+        $i++;
+        # fake TAP
+        when /^ \s* "not "? "ok $i" >> [ \s* "#" \s* $<msg> = [ .* ] ]/ { pass($/<msg>) }
+        when /^ \s* "#" / { #`{ ignore comments } }
+        when /^ \s* $/    { #`{ ignore blanks } }
+        default { flunk($/<msg>) }
+    }
+}
+
 method diag(*@msg) {
     my $msg = [~] @msg;
     note (("#" xx $msg.lines.elems) Z $msg.lines).join("\n");
