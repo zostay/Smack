@@ -46,11 +46,6 @@ method start() {
             die "server quit:\n\n$!err";
         }
     }
-    # my $wait-count = 0;
-    # until $!started {
-    #     sleep 1;
-    #     die "server startup took too long" if $wait-count++ > 60;
-    # }
     sleep 1;
     self.diag("Server took {$wait-count+1} seconds(ish) to start.");
 }
