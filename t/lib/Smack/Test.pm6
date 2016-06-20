@@ -32,13 +32,25 @@ method start() {
     $!server.stdout.tap(-> $v { $!started ||= $v ~~ /Starting/; self.diag($v) unless $!quiet });
     $!server.stderr.tap(-> $v { $!err ~= $v; self.diag($v) unless $!quiet });
     $!promise = $!server.start;
+    my $wait-interval = Supply.interval(1);
 
     # Give it a second
-    my $wait-count = 0;
-    until $!started {
-        sleep 1;
-        die "server startup took too long" if $wait-count++ > 60;
+    my $wait-count;
+    react {
+        whenever $wait-interval -> $n {
+            done if $!started;
+            die "server startup took too  long" if ($wait-count = $n) > 60;
+        }
+
+        whenever $!promise {
+            die "server quit:\n\n$!err";
+        }
     }
+    # my $wait-count = 0;
+    # until $!started {
+    #     sleep 1;
+    #     die "server startup took too long" if $wait-count++ > 60;
+    # }
     sleep 1;
     self.diag("Server took {$wait-count+1} seconds(ish) to start.");
 }
