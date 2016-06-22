@@ -54,3 +54,16 @@ an email, file an issue, or ping me on IRC. Please note that I am lurking as
 zostay on irc.perl.org and Freenode, but it is unusual that I am actually
 looking at my chat window, so email is your best bet.
 
+## Getting Started
+
+* Install perl6 (For example, on Mac OSX, `brew install rakudo-star`
+  (rakudo is a compiler for Perl 6.  That command will put the `perl6`
+  executable in your path.  See [http://perl6.org/](http://perl6.org)
+  for more details or how to install on other platforms).
+
+* Clone this repository (e.g. `git clone git@github.com:zostay/Smack.git` )
+
+* Go into the Smack directory and run `panda installdeps .`
+
+* Run `perl6 t/env.t` to run a few tests and see if things are
+  working at a basic level
