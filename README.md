@@ -61,7 +61,7 @@ looking at my chat window, so email is your best bet.
   executable in your path.  See [http://perl6.org/](http://perl6.org)
   for more details or how to install on other platforms).
 
-* Clone this repository (e.g. `git clone git@github.com:zostay/Smack.git` )
+* Clone this repository (e.g. `git clone git clone https://github.com/zostay/Smack.git` )
 
 * Go into the Smack directory and run `panda installdeps .`
 
