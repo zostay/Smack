@@ -67,3 +67,34 @@ looking at my chat window, so email is your best bet.
 
 * Run `perl6 t/env.t` to run a few tests and see if things are
   working at a basic level
+
+* If that looks good, a simple `Hello World` example is provided in
+  examples/hello-world.pw:
+
+~~~perl
+#!smackup
+# vim: set ft=perl6 :
+
+use v6;
+
+sub app(%env) {
+    start {
+        200, [ Content-Type => 'text/plain' ], 'Hello, World!';
+    }
+}
+~~~
+
+* until you have everything in your path, you can start the application
+  with
+
+  `perl6 -I lib/ bin/smackup --app=examples/hello-world.p6w`
+
+* that command should show you some debugging output, like this:
+
+~~~bash
+Starting on http://0.0.0.0:5000/...
+~~~~
+
+* You should now be able to open a browser and put `http://0.0.0.0:5000/`
+  in the location bar, and see a message familiar to programmers world
+  wide.
