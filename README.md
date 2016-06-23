@@ -98,3 +98,7 @@ Starting on http://0.0.0.0:5000/...
 * You should now be able to open a browser and put `http://0.0.0.0:5000/`
   in the location bar, and see a message familiar to programmers world
   wide.
+
+* There are other examples in the t/apps directory that you can look
+  at to start to get an idea of how it works.
+
