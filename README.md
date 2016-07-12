@@ -54,3 +54,51 @@ an email, file an issue, or ping me on IRC. Please note that I am lurking as
 zostay on irc.perl.org and Freenode, but it is unusual that I am actually
 looking at my chat window, so email is your best bet.
 
+## Getting Started
+
+* Install perl6 (For example, on Mac OSX, `brew install rakudo-star`
+  (rakudo is a compiler for Perl 6.  That command will put the `perl6`
+  executable in your path.  See [http://perl6.org/](http://perl6.org)
+  for more details or how to install on other platforms).
+
+* Clone this repository (e.g. `git clone git clone https://github.com/zostay/Smack.git` )
+
+* Go into the Smack directory and run `panda installdeps .`
+
+* Run `perl6 t/env.t` to run a few tests and see if things are
+  working at a basic level
+
+* If that looks good, a simple `Hello World` example is provided in
+  examples/hello-world.pw:
+
+~~~perl
+#!smackup
+# vim: set ft=perl6 :
+
+use v6;
+
+sub app(%env) {
+    start {
+        200, [ Content-Type => 'text/plain' ], 'Hello, World!';
+    }
+}
+~~~
+
+* until you have everything in your path, you can start the application
+  with
+
+  `perl6 -I lib/ bin/smackup --app=examples/hello-world.p6w`
+
+* that command should show you some debugging output, like this:
+
+~~~bash
+Starting on http://0.0.0.0:5000/...
+~~~~
+
+* You should now be able to open a browser and put `http://0.0.0.0:5000/`
+  in the location bar, and see a message familiar to programmers world
+  wide.
+
+* There are other examples in the t/apps directory that you can look
+  at to start to get an idea of how it works.
+
