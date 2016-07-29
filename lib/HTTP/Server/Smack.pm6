@@ -156,7 +156,7 @@ method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-don
 
     my $headers = HTTP::Headers.new;
     for @headers {
-        my ($name, $value) = .split(/\s*:\s*/, 2);
+        my ($name, $value) = .split(/\s*\:\s*/, 2);
         $headers.header($name, :quiet) = $value;
     }
 
