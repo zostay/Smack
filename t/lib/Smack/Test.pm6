@@ -8,7 +8,7 @@ use HTTP::Headers;
 constant $BASE-PORT = 46382;
 my $port-iteration = 0;
 
-has Bool $.quiet = %*ENV<TEST_SMACK_QUIET> // True;
+has Bool $.quiet = ?%*ENV<TEST_SMACK_QUIET> // True;
 has $.app is required;
 has $.port = $BASE-PORT + $port-iteration++;
 has $.skip-process-wait = %*ENV<TEST_SMACK_SKIP_PROCESS_WAIT>;

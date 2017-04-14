@@ -93,7 +93,7 @@ method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-don
     my $checked-through = 3;
     my $whole-buf = Buf.new;
 
-    whenever HTTP::Request::Supply.parse-http($conn.Supply) -> %request {
+    whenever HTTP::Request::Supply.parse-http($conn.Supply(:bin)) -> %request {
         %env = |%env, |%request;
 
         my $uri = %env<REQUEST_URI>;
@@ -108,7 +108,7 @@ method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-don
     }
 }
 
-method send-header($status, @headers, $conn) returns Str:D {
+method send-header($status, @headers, $conn) returns Str {
     my $status-msg = get_http_status_msg($status);
 
     $conn.write("HTTP/1.1 $status $status-msg\x0d\x0a".encode('ISO-8859-1'));
@@ -119,7 +119,7 @@ method send-header($status, @headers, $conn) returns Str:D {
     my $ct = @headers.first(*.key.fc eq 'content-type'.fc);
     my $charset = $ct.value.comb(/<-[;]>/)».trim.first(*.starts-with("charset="));
     $charset.=substr(8) if $charset;
-    $charset
+    $charset//Str
 }
 
 method handle-response(Promise() $promise, :$conn, :%env, :$ready, :$header-done, :$body-done) {
