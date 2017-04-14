@@ -52,21 +52,29 @@ sub response-encoding(
         // $fallback
 }
 
-sub stringify-encode($the-stuff,
-    :%env,
-    :$headers,
-    Str :$charset) is export{
+multi stringify-encode(Blob $the-stuff,
+    :%env, :$headers, Str :$charset) returns Blob is export {
+    $the-stuff
+}
 
+multi stringify-encode(Str:D() $the-stuff,
+    :%env, :$headers, Str :$charset) returns Blob is export {
     my $cs = response-encoding(:$charset, :%env, :$headers)
-    given $the-stuff {
-        when Blob     { $the-stuff }
-        when .defined { $the-stuff.Str.encode($cs) }
-        default       { ''.encode($cs) }
-    }
+    $the-stuff.encode($cs);
+}
+
+multi stringify-encode($the-stuff,
+    :%env, :$headers, Str :$charset) returns Blob is export {
+    my $cs = response-encoding(:$charset, :%env, :$headers)
+    ''.encode($cs);
 }
 
 sub status-with-no-entity-body(Int(Any) $status) is export returns Bool:D {
     return $status < 200
         || $status == 204
         || $status == 304;
+}
+
+sub content-length(%env, Supply $body) {
+    $body.map({ stringify-encode($_, :%env).bytes }).reduce(&infix:<+>).Promise;
 }
