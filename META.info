@@ -12,7 +12,7 @@
         "HTTP::UserAgent",
         "HTTP::Easy",
         "HTTP::Headers",
-        "HTTP::Parser",
+        "HTTP::Request::Supply",
         "HTTP::Status",
         "URI::Encode"
     ],
