@@ -2,8 +2,7 @@ unit class Smack::Test;
 
 use v6;
 
-use HTTP::Client;
-use HTTP::Headers;
+use HTTP::UserAgent;
 
 constant $BASE-PORT = 46382;
 my $port-iteration = 0;
@@ -17,7 +16,7 @@ has @.cmd = 'bin/smackup', '-a=t/apps/{app}', '-o=localhost', '-p={port}';
 
 has $.err = '';
 has $!started = False;
-has $!client = HTTP::Client.new;
+has $!client = HTTP::UserAgent.new;
 has $!server;
 has $!promise;
 
@@ -80,15 +79,62 @@ method run() {
 
 method treat-err-as-tap() {
     use Test;
-    my $i = 0;
-    for self.err.lines {
-        $i++;
-        # fake TAP
-        when /^ \s* "not "? "ok $i" >> [ \s* "#" \s* $<msg> = [ .* ] ]/ { pass($/<msg>) }
-        when /^ \s* "#" / { #`{ ignore comments } }
-        when /^ \s* $/    { #`{ ignore blanks } }
-        default { flunk($/<msg>) }
-    }
+    subtest {
+        my $i = 1;
+        my $plan = 0;
+
+        for self.err.lines {
+            # Parse expected "TAP"
+            when /^
+                \s*
+                $<ok> = [ "not "? "ok" ]
+                " $i" >>
+                [ \s* "#" \s* $<msg> = [ .* ] ]
+            / {
+                if $<ok> eq 'ok' {
+                    pass($<msg>);
+                }
+                else {
+                    flunk($<msg>);
+                }
+                $i++;
+            }
+
+            # Parse unexpected "TAP"
+            when /^
+                \s*
+                $<ok> = [ "not "? "ok" ] " "
+                $<got> = [ \d+ ] >>
+                [ \s* "#" \s* $<msg> = [ .* ] ]
+            / {
+                flunk("out of order TAP output from p6w.errors");
+                diag("\texpected: ok $i\n\tgot: $<ok> $<got>");
+                is $<ok>, 'ok', $<msg>;
+                $i++;
+            }
+
+            # Parse "TAP" test plan
+            when /^ "1.." $<end-test> = [ \d+ ] $/ {
+                $plan = $<end-test>.Int;
+            }
+
+            when /^ \s* "#" / { #`{ ignore comments } }
+
+            when /^ \s* $/    { #`{ ignore blanks } }
+
+            # Warn on other stuff
+            default {
+                note qq[# Strange "TAP" output from p6w.errors: $_];
+            }
+        }
+
+        if $plan {
+            plan $plan;
+        }
+        else {
+            flunk(qq[no plan in "TAP" from p6w.errors]);
+        }
+    }, 'treat-err-as-tap';
 }
 
 method diag(*@msg) {

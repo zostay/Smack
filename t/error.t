@@ -8,11 +8,12 @@ use Smack::Test;
 
 my @tests =
     -> $c, $u {
-        my $req = $c.post;
-        $req.url($u);
-        $req.set-content('ok 1 # got some content');
-        my $response = $req.run;
-        ok $response.success, 'request is ok';
+        use HTTP::Request;
+        my $req = HTTP::Request.new(POST => $u);
+        $req.add-content("ok 1 # got some content\n");
+        $req.add-content("1..1");
+        my $response = $c.request($req);
+        ok $response.is-success, 'request is ok';
     },
     ;
 

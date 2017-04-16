@@ -9,7 +9,7 @@
     "depends" : [
         "DateTime::Format",
         "Hash::MultiValue",
-        "HTTP::Client",
+        "HTTP::UserAgent",
         "HTTP::Easy",
         "HTTP::Headers",
         "HTTP::Parser",

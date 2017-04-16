@@ -8,6 +8,7 @@ sub app(%env) {
         react {
             whenever $input -> $buf {
                 %env<p6w.errors>.emit: $buf.decode;
+                LAST { done }
             }
         }
         200, [ Content-Type => 'text/plain' ], 'ok';

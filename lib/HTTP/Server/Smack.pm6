@@ -93,24 +93,33 @@ method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-don
     my $checked-through = 3;
     my $whole-buf = Buf.new;
 
-    whenever HTTP::Request::Supply.parse-http($conn.Supply(:bin)) -> %request {
-        %env = |%env, |%request;
+    whenever HTTP::Request::Supply.parse-http($conn.Supply(:bin), :debug) -> %request {
 
-        my $uri = %env<REQUEST_URI>;
-        my ($path, $query-string) = $uri.split('?', 2);
-        %env<PATH_INFO>       = uri_decode($path);
-        %env<QUERY_STRING>    = $query-string;
+        # We start a threaad here because we need to wait for the response.
+        # If we do that in the same thread as parse-http(), parse-http()
+        # may never get a chance to resume: DEADLOCK.
+        #
+        # TODO Figure out why this is necessary and if there is a better way.
+        start {
+            %env = |%env, |%request;
 
-        $res = app(%env);
+            my $uri = %env<REQUEST_URI>;
+            my ($path, $query-string) = $uri.split('?', 2);
+            %env<PATH_INFO>       = uri_decode($path);
+            %env<QUERY_STRING>    = $query-string;
 
-        # We stop here until the response is done beofre handling another request
-        await self.handle-response($res, :$conn, :%env, :$ready, :$header-done, :$body-done);
+            $res = app(%env);
+
+            # We stop here until the response is done beofre handling another request
+            await self.handle-response($res, :$conn, :%env, :$ready, :$header-done, :$body-done);
+        }
     }
 }
 
 method send-header($status, @headers, $conn) returns Str {
     my $status-msg = get_http_status_msg($status);
 
+    # Write headers in ISO-8859-1 encoding
     $conn.write("HTTP/1.1 $status $status-msg\x0d\x0a".encode('ISO-8859-1'));
     $conn.write("{.key}: {.value}\x0d\x0a".encode('ISO-8859-1')) for @headers;
     $conn.write("\x0d\x0a".encode('ISO-8859-1'));
@@ -130,6 +139,9 @@ method handle-response(Promise() $promise, :$conn, :%env, :$ready, :$header-done
         # consume and discard the bytes in the iput stream, just in case the app
         # didn't read from it.
         %env<p6w.input>.tap if %env<p6w.input> ~~ Supply:D;
+
+        # keep the promise the same
+        $promise.result;
     });
 }
 
@@ -162,7 +174,7 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$heade
                 #   - Content-Type: multipart/byteranges
                 elsif !defined($cl)
                         && (!defined($te) || $te.value.fc ne 'chunked'.fc)
-                        && (!defined($ct) || $ct.value.fc !~~ m:i{ ^ "multipart/byteranges" >> }) {
+                        && (!defined($ct) || $ct.value !~~ m:i{ ^ "multipart/byteranges" >> }) {
                     $conn.close;
                 }
 
