@@ -60,7 +60,7 @@ method accept-loop(&app) {
                 'p6w.url-scheme'      => 'http',
                 'p6w.body.encoding'   => 'UTF-8',
                 'p6w.ready'           => $ready-promise,
-                'p6w.protocol'        => 'http',
+                'p6w.protocol'        => 'request-response',
                 'p6wx.header.done'    => $header-done-promise,
                 'p6wx.body.done'      => $body-done-promise,
                 ;
