@@ -8,11 +8,17 @@ sub check-type(%env, $got, $expected) {
     my $err = %env<p6w.errors>;
     $expected.( %env{ $got } ) if $expected ~~ Callable;
     # fake TAP
+    if %env{ $got } :!exists {
+        $err.emit("not ok {++$i} # checking type of $got");
+        $err.emit("# value for $got does not exist");
+    }
     if %env{ $got } ~~ $expected {
-        $err.emit('ok ' ~ ++$i ~ " # checking type of $got");
+        $err.emit("ok {++$i} # checking type of $got");
     }
     else {
-        $err.emit('not ok ' ~ ++$i ~ " # checking type of $got");
+        $err.emit("not ok {++$i} # checking type of $got");
+        $err.emit("#\texpected: $expected.perl()");
+        $err.emit("#\t     got: %env{ $got }.WHAT.perl()");
     }
 }
 

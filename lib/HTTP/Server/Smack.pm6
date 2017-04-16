@@ -104,9 +104,13 @@ method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-don
             %env = |%env, |%request;
 
             my $uri = %env<REQUEST_URI>;
-            my ($path, $query-string) = $uri.split('?', 2);
-            %env<PATH_INFO>       = uri_decode($path);
-            %env<QUERY_STRING>    = $query-string;
+            my (Str $path, Str $query-string) = $uri.split('?', 2);
+            %env<PATH_INFO>        = uri_decode($path);
+            %env<QUERY_STRING>     = $query-string // '';
+            %env<CONTENT_LENGTH> //= Int;
+            %env<CONTENT_TYPE>   //= Str;
+
+            note "[debug] QUERY_STRING = $query-string.perl()";
 
             $res = app(%env);
 

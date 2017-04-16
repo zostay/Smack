@@ -108,7 +108,7 @@ method treat-err-as-tap() {
                 [ \s* "#" \s* $<msg> = [ .* ] ]
             / {
                 flunk("out of order TAP output from p6w.errors");
-                diag("\texpected: ok $i\n\tgot: $<ok> $<got>");
+                diag("\texpected: ok $i\n\t     got: $<ok> $<got>");
                 is $<ok>, 'ok', $<msg>;
                 $i++;
             }
