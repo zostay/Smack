@@ -21,7 +21,4 @@ sub mw(&wrappee is copy, %config) returns Callable {
     }
 }
 
-# Fix Until this or something like it merges:
-#   https://github.com/rakudo/rakudo/pull/798
-# my &mw-app := &mw.assuming(&app);
-sub (%config) returns Callable { mw(&app, %config) }
+&mw.assuming(&app);

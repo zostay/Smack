@@ -11,7 +11,7 @@ my @tests =
         my $response = $c.get($u);
         ok $response.is-success, 'request is ok';
 
-        is $response.header('P6W-Used'), 'True', 'mw inserted header';
+        is $response.header.field('P6W-Used'), 'True', 'mw inserted header';
     },
     ;
 
