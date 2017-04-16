@@ -2,16 +2,17 @@
 
 use v6;
 
+my $i = 0;
+
 sub check-type(%env, $got, $expected) {
-    state $i = 1;
     my $err = %env<p6w.errors>;
     $expected.( %env{ $got } ) if $expected ~~ Callable;
     # fake TAP
     if %env{ $got } ~~ $expected {
-        $err.emit('ok ' ~ $i++ ~ " # checking type of $got");
+        $err.emit('ok ' ~ ++$i ~ " # checking type of $got");
     }
     else {
-        $err.emit('not ok ' ~ $i++ ~ " # checking type of $got");
+        $err.emit('not ok ' ~ ++$i ~ " # checking type of $got");
     }
 }
 
@@ -43,6 +44,9 @@ sub app(%env) {
         check-type %env, 'p6w.ready', Promise:D;
         check-type %env, 'p6w.body.encoding', Str:D;
         check-type %env, 'p6w.protocol', Str:D;
+
+        my $err = %env<p6w.errors>;
+        $err.emit: "1..$i";
 
         200, [ Content-Type => 'text/plain' ], [ 'OK' ]
     }
