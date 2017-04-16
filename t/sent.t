@@ -12,16 +12,16 @@ my @tests =
         my $response;
 
         $response = $c.get($u);
-        ok($response.success, 'successfully made a request');
+        ok($response.is-success, 'successfully made a request');
 
         $response = $c.get($u);
-        ok($response.success, 'successfully made a request');
+        ok($response.is-success, 'successfully made a request');
 
         $response = $c.get($u);
-        ok($response.success, 'successfully made a request');
+        ok($response.is-success, 'successfully made a request');
 
         $response = $c.get("{$u}check");
-        ok($response.success, 'successfully made a request');
+        ok($response.is-success, 'successfully made a request');
 
         is $response.content, "3", "sent 3 times";
     };

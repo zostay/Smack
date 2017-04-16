@@ -9,7 +9,7 @@ use Smack::Test;
 my @tests =
     -> $c, $u {
         my $response = $c.get($u);
-        ok $response.success, 'request is ok';
+        ok $response.is-success, 'request is ok';
 
         is $response.header('P6W-Used'), 'True', 'mw inserted header';
     },

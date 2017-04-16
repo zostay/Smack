@@ -9,10 +9,10 @@ use Smack::Test;
 my @tests =
     -> $c, $u {
         my $response = $c.get($u);
-        ok $response.success, 'request is ok';
+        ok $response.is-success, 'request is ok';
 
-        is $response.status, 200, 'response status is 200';
-        is $response.header('Content-Type'), 'text/plain', 'CT is text/plain';
+        is $response.code, 200, 'response status is 200';
+        is $response.content-type, 'text/plain', 'CT is text/plain';
         is $response.content, 'ok', 'response content is ok';
     },
     ;

@@ -10,10 +10,10 @@ use Smack::Test;
 my @tests =
     -> $c, $u {
         my $response = $c.get($u);
-        ok($response.success, 'successfully made a request');
+        ok($response.is-success, 'successfully made a request');
 
-        is($response.status, 200, 'returned 200');
-        my $headers = HTTP::Headers.new: $response.headers, :quiet;
+        is($response.code, 200, 'returned 200');
+        my $headers = HTTP::Headers.new: $response.header.hash, :quiet;
 
         is $headers.elems, 1, 'only one header set';
         is $headers.Content-Type, 'text/plain', 'Content-Type: text/plain';
