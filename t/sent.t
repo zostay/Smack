@@ -11,18 +11,16 @@ my @tests =
     -> $c, $u {
         my $response;
 
-        $response = $c.get($u);
-        ok($response.is-success, 'successfully made a request');
+        # Run three times
+        for ^3 {
+            $response = $c.get($u);
+            ok $response.is-success, 'successfully made a request';
+            ok $response.content, 'Hello World';
+        }
 
-        $response = $c.get($u);
-        ok($response.is-success, 'successfully made a request');
-
-        $response = $c.get($u);
-        ok($response.is-success, 'successfully made a request');
-
+        # Verify that the server kept the done promise thrice
         $response = $c.get("{$u}check");
         ok($response.is-success, 'successfully made a request');
-
         is $response.content, "3", "sent 3 times";
     };
 

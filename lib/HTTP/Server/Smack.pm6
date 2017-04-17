@@ -15,7 +15,7 @@ has $!listener;
 
 my sub _errors {
     my $errors = Supplier.new;
-    $errors.Supply.tap: -> $s { $*ERR.say($s) };
+    $errors.Supply.act: -> $s { $*ERR.say("$s") };
     $errors;
 }
 
@@ -42,6 +42,7 @@ method setup-listener {
 method accept-loop(&app) {
     react {
         whenever $!listener -> $conn {
+            note "[note] new client connection";
 
             my Promise $header-done-promise .= new;
             my $header-done = $header-done-promise.vow;
@@ -93,7 +94,7 @@ method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-don
     my $checked-through = 3;
     my $whole-buf = Buf.new;
 
-    whenever HTTP::Request::Supply.parse-http($conn.Supply(:bin), :debug) -> %request {
+    whenever HTTP::Request::Supply.parse-http($conn.Supply(:bin), :!debug) -> %request {
 
         # We start a threaad here because we need to wait for the response.
         # If we do that in the same thread as parse-http(), parse-http()

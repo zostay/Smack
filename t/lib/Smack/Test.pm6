@@ -38,7 +38,7 @@ method start() {
     react {
         whenever $wait-interval -> $n {
             done if $!started;
-            die "server startup took too  long" if ($wait-count = $n) > 60;
+            die "server startup took too long" if ($wait-count = $n) > 60;
         }
 
         whenever $!promise {
