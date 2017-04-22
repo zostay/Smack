@@ -1,4 +1,6 @@
-unit class File does Smack::Component;
+use Smack::Component;
+
+unit class Smack::App::File does Smack::Component;
 
 use v6;
 
@@ -7,16 +9,23 @@ use Smack::MIME;
 
 has IO::Path $.root;
 has IO::Path $.file;
-has $.content-type;
-has $.encoding;
-has $.bytes-at-a-time = 8192;
+has Str $.content-type;
+has Str $.encoding;
+has UInt $.chunk-size = 8192;
+
+submethod TWEAK() {
+    die "either root or file must be defined, but not both"
+        unless $!root.defined ^^ $!file.defined;
+}
+
+method configure(%env) { }
 
 method should-handle($file) { $file.f }
 
 method call(%env) {
     start {
         my ($file, $path-info) = $.file // self.locate-file(%env);
-        return $file if $file ~~ Positional;
+        return $file if $file ~~ Iterable;
 
         if $path-info {
             %env<smack.file.SCRIPT_NAME> = %env<SCRIPT_NAME> ~ %env<PATH_INFO>;
@@ -37,7 +46,6 @@ method locate-file(%env) {
 
     return self.bad-request if $path ~~ /\0/;
 
-    my $docroot = $.root // '.';
     my @path = $path.split(/<[ \\ \/ ]>/);
     if @path {
         @path.shift if $path[0] eq '';
@@ -46,11 +54,11 @@ method locate-file(%env) {
         @path = '.';
     }
 
-    return self.forbidden if @path.first(/^\.{2,}$/);
+    return self.forbidden if any(|@path) eq '..';
 
     my ($file, @path-info);
     while @path {
-        my $try = $docroot.child(@path);
+        my $try = $.root.child(@path);
         if self.should-handle($try) {
             $file = $try;
             last;
@@ -78,8 +86,8 @@ method serve-path(%env, $file) {
         $content-type = $content-type.($file);
     }
 
-    if $content-type ~~ rx{^text/} {
-        $content-type ~= '; charset' ~ ($.encoding // 'utf-8');
+    if $content-type.starts-with('text/') {
+        $content-type ~= '; charset=' ~ ($.encoding // 'utf-8');
     }
 
     my $fh = $file.open(:r) or return self.forbidden;
@@ -87,10 +95,10 @@ method serve-path(%env, $file) {
     200, [
         Content-Type   => $content-type,
         Content-Length => $file.s,
-        Last-Modified  => time2str($file.modified),
+        Last-Modified  => time2str($file.modified.DateTime),
     ],
     Supply.on-demand(-> $s {
-        $s.emit($fh.read($.bytes-at-a-time))
+        $s.emit($fh.read($.chunk-size))
             until $fh.eof;
         $s.done;
     });

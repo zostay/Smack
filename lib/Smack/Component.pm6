@@ -2,15 +2,15 @@ unit role Smack::Component;
 
 use v6;
 
-method configure(%env) { }
+method configure(%env) { ... }
 
-method call(%env) { }
+method call(%env) { ... }
 
-# the to-app method should be is cached
+# the to-app method is cached
 has $!app;
 method to-app() {
     return $!app if $!app;
-    $!app = sub (%config --> Callable) {
+    $!app = sub (%config) returns Callable {
         self.configure(%config);
         sub (%env) { self.call(%env) };
     }

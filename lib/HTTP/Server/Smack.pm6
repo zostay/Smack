@@ -111,8 +111,6 @@ method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-don
             %env<CONTENT_LENGTH> //= Int;
             %env<CONTENT_TYPE>   //= Str;
 
-            note "[debug] QUERY_STRING = $query-string.perl()";
-
             $res = app(%env);
 
             # We stop here until the response is done beofre handling another request

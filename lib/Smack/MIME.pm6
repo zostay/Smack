@@ -177,7 +177,7 @@ our %MIME-TYPES =
 my &fallback = sub ($ext) { }
 
 method mime-type($file) {
-    $file ~~ /<ext> = [
+    $file ~~ /$<ext> = [
         '.' <[ a..z A..Z 0..9 ]>+
     ]/ or return Nil;
 
@@ -185,7 +185,9 @@ method mime-type($file) {
 }
 
 method add-type(*%pairs) {
-    %MIME-TYPES{ $^ext } = $^type for %pairs.kv;
+    for %pairs.kv -> $ext, $type {
+        %MIME-TYPES{ $ext } = $type;
+    }
 }
 
 method set-fallback(&cb) {
