@@ -1,9 +1,11 @@
-unit class Smack::Test;
+unit class Smack::Test::Smackup;
 
 use v6;
 
 use HTTP::UserAgent;
 
+# TODO Replace when IO has the ability to let IO assign the port and tell us
+# which port was assigned.
 constant $BASE-PORT = 46382;
 my $port-iteration = 0;
 

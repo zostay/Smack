@@ -3,8 +3,7 @@
 use v6;
 
 use Test;
-use lib 't/lib';
-use Smack::Test;
+use Smack::Test::Smackup;
 
 my @tests =
     -> $c, $u {
@@ -15,7 +14,7 @@ my @tests =
     },
     ;
 
-my $test-server = Smack::Test.new(:app<mw.p6w>, :@tests);
+my $test-server = Smack::Test::Smackup.new(:app<mw.p6w>, :@tests);
 $test-server.run;
 note $test-server.err;
 

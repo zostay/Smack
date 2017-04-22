@@ -1,4 +1,4 @@
-unit class Smack::Loader;
+unit role Smack::Loader;
 
 use Smack::Handler;
 

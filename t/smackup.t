@@ -3,9 +3,8 @@
 use v6;
 
 use Test;
-use lib 't/lib';
 use HTTP::Headers;
-use Smack::Test;
+use Smack::Test::Smackup;
 
 my @tests =
     -> $c, $u {
@@ -23,7 +22,7 @@ my @tests =
 
 for <hello hello-supply hello-psgi> -> $name {
     my $app = $name ~ ".p6w";
-    my $test-server = Smack::Test.new(:$app, :@tests);
+    my $test-server = Smack::Test::Smackup.new(:$app, :@tests);
     $test-server.run;
 }
 

@@ -2,9 +2,9 @@ unit role Smack::Component;
 
 use v6;
 
-method configure(%env) { ... }
+method configure(%config) { }
 
-method call(%env) { ... }
+method call(%env) { }
 
 # the to-app method is cached
 has $!app;
