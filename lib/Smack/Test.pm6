@@ -63,9 +63,12 @@ class Smack::Test {
 
     proto test-p6wapi(|) is export { * };
 
+    multi test-p6wapi($app where { .^can('to-app') }, &client) {
+        samewith($app.to-app, &client);
+    }
+
     multi test-p6wapi(&app, &client) {
-        my $tester = test-factory.create(&app);
-        client($tester);
+        samewith(:&app, :&client);
     }
 
     multi test-p6wapi(:&app, :&client, *%args) {

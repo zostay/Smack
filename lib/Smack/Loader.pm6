@@ -42,6 +42,7 @@ method preload-app(&builder) {
 
 method guess() {
     return %.env<PLACK_SERVER> if %.env<PLACK_SERVER>;
+    return 'CGI' if %.env<GATEWAY_INTERFACE>;
 
     return "Standalone";
 }
