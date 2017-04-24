@@ -48,14 +48,14 @@ method call(%env) {
             $response = self.serve-path(%env, $file);
         }
 
-        dd $response;
+        # dd $response;
         $response;
     }
 }
 
 method locate-file(%env) {
     my $path = %env<PATH_INFO> // '';
-    dd $path;
+    # dd $path;
 
     die X::Smack::Exception::BadRequest.new if $path ~~ /\0/;
 

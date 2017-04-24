@@ -65,9 +65,10 @@ subtest {
     # };
 
     test-p6wapi $app-secure, -> $c {
-        for 1..100 -> $i {
+        # TODO More iterations here segfaults in moar 2017.03-128-gc9ab59c
+        for 1..10 -> $i {
             my $response = $c.request(GET '/file.t' ~ ("/" x $i));
-            dd $response;
+            # dd $response;
             is $response.code, 404, 'status is 404';
             is $response.decoded-content, 'Not Found', 'content is Not Found';
         }
