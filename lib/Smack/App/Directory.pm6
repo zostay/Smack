@@ -1,9 +1,13 @@
+use Smack::App::File;
+
 unit class Smack::App::Directory is Smack::App::File;
 
 use v6;
 
+use Smack::Date;
+use Smack::Util;
 use Smack::Request;
-use URI::Encode;
+use URI::Escape;
 
 # Stolen from Plack::App::Directory
 my $dir-file = q:to/DIR-FILE/;
@@ -21,7 +25,7 @@ my $dir-page = q:to/DIR-PAGE/;
         <title>%s</title>
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
         <style type="text/css">
-table { width: 100% }
+table { width: 100%% }
 .name { text-align: left }
 .size, .mtime { text-align: right }
 .type { width: 11em }
@@ -45,34 +49,35 @@ table { width: 100% }
 </html>
 DIR-PAGE
 
-method should-handle() { $file.d || $file.f }
+method should-handle($file) { $file.d || $file.f }
 
 method redirect-to-directory(%env) {
     my $uri = Smack::Request.new(%env).uri;
 
     301,
     [
-        Location       => $uri ~ '/',
+        Location       => "$uri/",
         Content-Type   => 'text/plain',
         Content-Lenght => 8,
     ],
     [ 'Redirect' ]
 }
 
-method serve-path(%env, $dir, $fullpath) {
+method serve-path(%env, $dir) {
     nextsame if $dir.f; # go back up ::File for files
 
     my $dir-url = %env<SCRIPT_NAME> ~ %env<PATH_INFO>;
-    return self.redirect-to-directory(%env) if $dir-url !~~ m{/$};
+    return self.redirect-to-directory(%env)
+        unless $dir-url.ends-with('/');
 
-    my @files = ([ "../", "Parent Directory", '', '', '' ]);
+    my @files = [ $( "../", "Parent Directory", '', '', '' ) ];
 
     my @children = $dir.dir.grep(* ~~ none('.', '..'));
-    for @children.sort -> $basename {
-        my $file = $dir.child($basename);
-        my $url  = $dir-url ~ $basename;
+    for @children.sort -> $file {
+        my $basename = $file.basename;
+        my $url      = $dir-url ~ $basename;
 
-        $url.=split('/').=map(&uri-encode).=join('/');
+        $url.=split('/').=map(&uri-escape).=join('/');
 
         if $file.d {
             $basename ~= '/';
@@ -81,12 +86,12 @@ method serve-path(%env, $dir, $fullpath) {
 
         my $mime-type = $file.d ?? 'directory' !! (
             Smack::MIME.mime-type($file) // 'text/plain');
-        @files.push: [ $url, $basename, $file.s, $mime-type, time2str($file.modified) ];
+        @files.push: ( $url, $basename, $file.s, $mime-type, time2str($file.modified.DateTime) );
     }
 
     my $path = encode-html("Index of %env<PATH_INFO>");
-    my $files = @files.map({
-        sprintf $dir-file, @^f.map(&encode-html)
+    my $files = @files.map(-> @f {
+        sprintf $dir-file, |@f.map(&encode-html)
     }).join("\n");
     my $page = sprintf $dir-page, $path, $path, $files;
 

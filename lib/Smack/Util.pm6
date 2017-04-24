@@ -23,8 +23,9 @@ sub request-headers(%env) is export {
 
 sub request-encoding(
     Str :$charset,
-    %env,
-    Str:D :$fallback = 'ISO-8859-1') is export {
+    :%env,
+    Str:D :$fallback = 'ISO-8859-1',
+) is export {
 
     $charset
         // request-headers(:%env).Content-Type.charset
@@ -57,15 +58,23 @@ multi stringify-encode(Blob $the-stuff,
     $the-stuff
 }
 
-multi stringify-encode(Str:D() $the-stuff,
-    :%env, :$headers, Str :$charset) returns Blob is export {
-    my $cs = response-encoding(:$charset, :%env, :$headers)
+multi stringify-encode(
+    Str:D() $the-stuff,
+    :%env,
+    :$headers,
+    Str :$charset,
+) returns Blob is export {
+    my $cs = response-encoding(:$charset, :%env, :$headers);
     $the-stuff.encode($cs);
 }
 
-multi stringify-encode($the-stuff,
-    :%env, :$headers, Str :$charset) returns Blob is export {
-    my $cs = response-encoding(:$charset, :%env, :$headers)
+multi stringify-encode(
+    $the-stuff,
+    :%env,
+    :$headers,
+    Str :$charset,
+) returns Blob is export {
+    my $cs = response-encoding(:$charset, :%env, :$headers);
     ''.encode($cs);
 }
 
@@ -73,6 +82,13 @@ sub status-with-no-entity-body(Int(Any) $status) is export returns Bool:D {
     return $status < 200
         || $status == 204
         || $status == 304;
+}
+
+sub encode-html(Str() $str) returns Str is export {
+    $str.trans(
+        [ '&',     '>',    '<',    '"',      "'"     ] =>
+        [ '&amp;', '&gt;', '&lt;', '&quot;', '&#39;' ]
+    );
 }
 
 sub content-length(%env, Supply $body) {

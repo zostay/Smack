@@ -34,7 +34,7 @@ class X::Smack::Exception::BadRequest is X::Smack::Exception {
 }
 
 class X::Smack::Exception::Forbidden is X::Smack::Exception {
-    method respose() {
+    method response() {
         403,
         [
             Content-Type   => 'text/plain',
