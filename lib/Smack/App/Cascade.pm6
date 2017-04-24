@@ -1,31 +1,56 @@
+use Smack::Component;
+
 unit class Smack::App::Cascade
 does Smack::Component;
 
-has @.apps is required;
-has Set %.codes = 404 => True;
+has Callable @.apps is rw;
+has %.catch is rw = set(404);
 
-method call(%env) {
-    my &initial-app = @.apps[0];
-    my $p = initial-app(%env);
-    return $p unless @.apps.elems > 1;
+sub cascade-app($p, :%env, :%catch, :@remaining-apps) {
+    my (Int() $code) = $p.result;
 
-    # TODO This is a slick solution, but it does too much work. As it is now, a
-    # .then() Promise is tacked on for every app and every .then() Promise will
-    # run. Once the first application has returned an OK response (or whatever),
-    # then the will all resolve quickly, but that's still some unnecessary
-    # routines to run.
+    # Previous app failed, try the next
+    if %catch{ $code } {
+        my &next-app = shift @remaining-apps;
 
-    for @.apps[1..*] -> &app {
-        $p.=then(-> $p {
-            my (Int(Any) $status, $headers, $body) = $p.result;
-            if %.codes{ $status } {
-                app(%env);
-            }
-            else {
-                $status, $headers, $body;
-            }
-        });
+        # Only one left? Just run it as the final.
+        if @remaining-apps == 0 {
+            next-app(%env);
+        }
+
+        # More than one left, try it
+        else {
+            next-app(%env).then(
+                &cascade-app.assuming(:%env, :%catch, :@remaining-apps);
+            );
+        }
     }
 
-    $p
+    # Previous app succeeded, return the result
+    else {
+        |$p.result;
+    }
+}
+
+method configure(%config) {
+    @.apps .= map({
+        .returns ~~ Callable ?? .(%config) !! $_
+    });
+}
+
+method call(%env) {
+
+    # No apps to cascade, just return the 404
+    unless @.apps {
+        return start {
+            404, [ Content-Type => 'text/plain' ], [ '404 Not Found' ];
+        }
+    }
+
+    # Run the initial app and let cascade-app handle the outcome
+    my @remaining-apps = @.apps;
+    my &initial-app = shift @remaining-apps;
+    initial-app(%env).then(
+        &cascade-app.assuming(:%env, :%.catch, :@remaining-apps)
+    );
 }
