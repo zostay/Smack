@@ -18,7 +18,7 @@ sub request-to-p6wapi(HTTP::Request $req, :env(%overrides), :%config) is export 
         $key ~~ s/^ HTTP_ //
             if $field eq 'Content-Length' | 'Content-Type';
 
-        take $key => $req.header.field($field);
+        take $key => $req.header.field($field).Str;
     }
 
     my %env =
