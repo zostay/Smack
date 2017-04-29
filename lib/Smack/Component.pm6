@@ -1,4 +1,4 @@
-unit role Smack::Component;
+unit class Smack::Component;
 
 use v6;
 
@@ -9,10 +9,11 @@ method call(%env) { }
 # the to-app method is cached
 has $!app;
 method to-app() {
+    my $self = self;
     return $!app if $!app;
     $!app = sub (%config) returns Callable {
-        self.configure(%config);
-        sub (%env) { self.call(%env) };
+        $self.configure(%config);
+        sub (%env) { $self.call(%env) };
     }
 }
 

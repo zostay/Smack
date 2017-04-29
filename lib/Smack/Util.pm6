@@ -53,6 +53,18 @@ sub response-encoding(
         // $fallback
 }
 
+proto unpack-response(|) is export { * }
+
+multi unpack-response(@res (Int() $status, @headers, Supply() $entity), &response-handler) {
+    note "HERE";
+    response-handler($status, @headers, $entity);
+}
+
+multi unpack-response(Promise:D $p, &response-handler) {
+    my $res = await $p;
+    unpack-response($res, &response-handler);
+}
+
 multi stringify-encode(Blob $the-stuff,
     :%env, :$headers, Str :$charset) returns Blob is export {
     $the-stuff
@@ -91,6 +103,6 @@ sub encode-html(Str() $str) returns Str is export {
     );
 }
 
-sub content-length(%env, Supply $body) {
-    $body.map({ stringify-encode($_, :%env).bytes }).reduce(&infix:<+>).Promise;
+sub content-length(%env, Supply() $body) returns Supply is export {
+    $body.map({ stringify-encode($_, :%env).bytes }).reduce(&infix:<+>);
 }
