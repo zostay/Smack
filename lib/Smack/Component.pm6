@@ -21,3 +21,5 @@ method to-app() {
 method wrap(&middleware) {
     self.to-app.wrap(&middleware);
 }
+
+method Callable() returns Callable { self.to-app }
