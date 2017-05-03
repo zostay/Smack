@@ -59,7 +59,7 @@ multi response-from-p6wapi(Promise:D $p6w-promise) is export {
 
 constant CR   = 0x0d;
 constant LF   = 0x0a;
-constant CRLF = buf8.new(CR, LF);
+constant CRLF = utf8.new(CR, LF);
 
 multi response-from-p6wapi(@p6w-res (Int() $status, @headers, Supply() $entity)) is export {
     my HTTP::Response $res .= new($status);
@@ -88,6 +88,8 @@ multi response-from-p6wapi(@p6w-res (Int() $status, @headers, Supply() $entity))
             }
         }
     }
+
+    $res.content = '' if $res.content.bytes == 0;
 
     $res;
 }

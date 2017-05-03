@@ -33,12 +33,8 @@ method configure(%env) {
 }
 
 method call(%env) {
-    dd %env;
     callsame().then(-> $p {
         unpack-response $p, -> $status, @headers, $entity {
-            dd $status;
-            dd @headers;
-            dd $entity;
             my $cl = content-length(%env, $entity).Promise;
             start {
                 my $content-length = await $cl;

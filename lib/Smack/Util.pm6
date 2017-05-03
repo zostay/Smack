@@ -56,7 +56,6 @@ sub response-encoding(
 proto unpack-response(|) is export { * }
 
 multi unpack-response(@res (Int() $status, @headers, Supply() $entity), &response-handler) {
-    note "HERE";
     response-handler($status, @headers, $entity);
 }
 
