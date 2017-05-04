@@ -1,28 +1,37 @@
+use Smack::Middleware;
+
 unit class Smack::Middleware::ContentMD5
-does Smack::Middleware;
+is Smack::Middleware;
+use v6;
 
 use Digest::MD5;
+use Smack::Util;
 
 method call(%env) {
     &.app.(%env).then(-> $p {
-        my ($s, @h, Supply(All) $body) = $p.result;
+        unpack-response $p, -> $s, @h, $entity {
+            my $headers = response-headers(@h, :%env);
 
-        my $headers = response-headers(:@headers, :%env);
-        my $charset = response-encoding(:@headers, :%env);
+            if !status-with-no-entity-body($s)
+                && !$headers.Content-MD5
+                && !$entity.live {
 
-        if !status-with-no-entity-body($s)
-            && !$headers.Content-MD5
-            && !$body.live {
+                my $md5-sum-p
+                    = $entity.grep(Blob | Str)
+                             .map({ stringify-encode($_, :%env) })
+                             .reduce({ $^a ~ $^b })
+                             .map({
+                                Digest::MD5::md5($_).list».fmt('%02x').join;
+                             })
+                             .Promise
+                             ;
 
-            my @list;
-            $body.tap: -> $v {
-                push @list, my $buf = stringify-encode($v, :$headers, :%env);
-            };
-            $body.wait;
+                my $md5-sum = await $md5-sum-p;
 
-            push @h, Content-MD5 => Digest::MD5::md5_hex(@list);
+                push @h, 'Content-MD5' => $md5-sum;
+            }
 
-            $s, @h, Supply.from-list(@list)
+            $s, @h, $entity
         }
     });
 }

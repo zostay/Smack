@@ -103,5 +103,7 @@ sub encode-html(Str() $str) returns Str is export {
 }
 
 sub content-length(%env, Supply() $body) returns Supply is export {
-    $body.map({ stringify-encode($_, :%env).bytes }).reduce(&infix:<+>);
+    $body.grep(Blob | Str)
+         .map({ stringify-encode($_, :%env).bytes })
+         .reduce(&infix:<+>);
 }
