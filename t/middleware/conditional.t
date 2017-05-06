@@ -15,9 +15,12 @@ sub wrapped-app(%env) {
     }
 }
 
+subset AllCapsRequest of Associative
+    where { %^env<HTTP_X_ALLCAPS> eq 'YES-PLEASE' };
+
 my &app = Smack::Middleware::Conditional.new(
     app       => &wrapped-app,
-    condition => { %^env<HTTP_X_ALLCAPS> eq 'YES-PLEASE' },
+    condition => AllCapsRequest,
     builder   => -> &app {
         sub (%env) {
             app(%env).then(-> $p {

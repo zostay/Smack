@@ -14,7 +14,7 @@ method call(%env) {
 }
 
 # This is sort of equivalent to Plack::Middleware::wrap.
-method wrap-that(Smack::Middleware:U: &app, *@_, *%_) {
-    my $mw = self.new(:&app, |@_, |%_);
+method wrap-that(Smack::Middleware:U: &app, |args) {
+    my $mw = self.new(:&app, |args);
     $mw.to-app;
 }
