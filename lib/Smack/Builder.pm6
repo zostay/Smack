@@ -1,16 +1,18 @@
 use v6;
 
-class X::Smack::Builder::NoBuilder {
+class X::Smack::Builder is Exception { }
+
+class X::Smack::Builder::NoBuilder is X::Smack::Builder {
     has Str $.sub;
 
     method message() {
-        "$.sub must be called inside a builder {} block"
+        "$.sub must be called inside a builder \{} block"
     }
 }
 
-class X::Smack::Builder::NoApp {
+class X::Smack::Builder::NoApp is X::Smack::Builder {
     method message() {
-        "No application to build. Your builder {} block must either use mount() or return an app.";
+        'no application to build. Your builder {} block must either use mount() or return an app';
     }
 }
 
@@ -21,9 +23,9 @@ class X::Smack::Builder::NoApp {
 #   (2) Exception handling in Perl 6 is amazingly better than Perl 5, so if they
 #       really feel like doing this for some reason, let them catch the
 #       exception and live with the consequences.
-class X::Smack::Builder::UselessMount {
+class X::Smack::Builder::UselessMount is X::Smack::Builder {
     method message() {
-        "You used mount() in a builder {} block, but the last line (app) is not using mount()."
+        "you used mount() in a builder \{} block, but the result of the block is an app, which hides all mounts; if this is deliberate, please catch the $?PACKAGE.perl() exception and .resume"
     }
 }
 
@@ -151,7 +153,7 @@ sub builder(&app-builder) is export {
 
     my $app = app-builder();
 
-    $app = $app.to-app if defined $app && $app.^can('to-app');
+    $app = $app.to-app if $app.defined && $app.^can('to-app');
 
     $*SMACK-BUILDER.to-app($app);
 }
