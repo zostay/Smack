@@ -1,6 +1,6 @@
 use Smack::Component;
 
-unit class Smack::App::URLMap does Smack::Component;
+unit class Smack::App::URLMap is Smack::Component;
 
 use v6;
 
