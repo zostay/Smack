@@ -8,22 +8,20 @@ use Smack::Util;
 method call(%env) {
     return callsame() unless %env<REQUEST_METHOD> eq 'GET' | 'HEAD';
 
-    callsame().then(-> $p {
-        unpack-response $p, sub ($s, @h, $e) {
-            my @checks = self.etag-matches(@h, %env),
-                         self.not-modified-since(@h, %env);
+    callsame() then-with-response sub ($s, @h, $e) {
+        my @checks = self.etag-matches(@h, %env),
+                     self.not-modified-since(@h, %env);
 
-            return $p.result unless @checks;
-            return $p.result unless all(|@checks);
+        return unless @checks;
+        return unless all(|@checks);
 
-            my @head = @h.grep({
-                .key ne 'Content-Type' | 'Content-Length' | 'Content-Disposition'
-            });
+        my @head = @h.grep({
+            .key ne 'Content-Type' | 'Content-Length' | 'Content-Disposition'
+        });
 
-            # 304 with content headers stripped, and empty body
-            304, @head, $e.map({ '' })
-        }
-    });
+        # 304 with content headers stripped, and empty body
+        304, @head, $e.map({ '' })
+    }
 }
 
 sub _value($str is copy) { s/';' .* $// with $str; $str//Nil }

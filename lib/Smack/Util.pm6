@@ -53,6 +53,30 @@ sub response-encoding(
         // $fallback
 }
 
+sub header-remove(@h, $remove) {
+    @h .= grep(*.key ne $remove)
+}
+
+sub header-set(@h, *%headers) {
+    for %headers.kv -> $k, $v {
+        my @i = @h.grep({ .key ne $k }, :k);
+        if @i {
+            # Replace first header value with this
+            my $i = shift @i;
+            @h[$i] = $k => $v;
+
+            # Delete the rest
+            @h[ @i ] :delete;
+            @h .= grep(Pair);
+        }
+
+        else {
+            # No existing header value, just add it
+            push @h, $k => $v;
+        }
+    }
+}
+
 proto unpack-response(|) is export { * }
 
 multi unpack-response(@res (Int() $status, @headers, Supply() $entity), &response-handler) {
@@ -62,6 +86,21 @@ multi unpack-response(@res (Int() $status, @headers, Supply() $entity), &respons
 multi unpack-response(Promise:D $p, &response-handler) {
     my $res = await $p;
     unpack-response($res, &response-handler);
+}
+
+sub infix:<then-with-response> ($p, $c) is export {
+    $p.then: -> $then {
+        with unpack-response($then, $c) -> $r {
+            when Supply {
+                my ($s, $h) = |$then.result;
+                $s, $h, $r
+            }
+            default { $r }
+        }
+        else {
+            $then.result
+        }
+    }
 }
 
 multi stringify-encode(Blob $the-stuff,

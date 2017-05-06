@@ -41,3 +41,4 @@ test-p6wapi &app, -> $c {
     }, 'condition inactive';
 };
 
+done-testing;

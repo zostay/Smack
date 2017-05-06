@@ -33,21 +33,19 @@ method configure(%env) {
 }
 
 method call(%env) {
-    callsame().then(-> $p {
-        unpack-response $p, -> $status, @headers, $entity {
-            my $cl = content-length(%env, $entity).Promise;
-            start {
-                my $content-length = await $cl;
-                CATCH {
-                    default { &.logger.($_) }
-                }
-                my $log-line = self.log-line($status, @headers, %env, :$content-length);
-                &.logger.($log-line);
+    callsame() then-with-response -> $status, @headers, $entity {
+        my $cl = content-length(%env, $entity).Promise;
+        start {
+            my $content-length = await $cl;
+            CATCH {
+                default { &.logger.($_) }
             }
-
-            $status, @headers, $entity
+            my $log-line = self.log-line($status, @headers, %env, :$content-length);
+            &.logger.($log-line);
         }
-    });
+
+        Nil
+    }
 }
 
 method log-line(Int() $status, @headers, %env, :$content-length, :$req-time, DateTime :$time = DateTime.now) {

@@ -6,22 +6,20 @@ is Smack::Middleware;
 use Smack::Util;
 
 method call(%env) {
-    callsame().then(-> $p {
-        unpack-response $p, -> $s, @h, $entity {
-            my $headers = response-headers(@h, :%env);
+    callsame() then-with-response -> $s, @h, $entity {
+        my $headers = response-headers(@h, :%env);
 
-            if !status-with-no-entity-body($s)
-                && !$headers.Content-Length
-                && !$headers.Transfer-Encoding
-                && !$entity.live {
+        if !status-with-no-entity-body($s)
+            && !$headers.Content-Length
+            && !$headers.Transfer-Encoding
+            && !$entity.live {
 
-                my $cl = content-length(%env, $entity).Promise;
-                my $content-length = await $cl;
+            my $cl = content-length(%env, $entity).Promise;
+            my $content-length = await $cl;
 
-                push @h, 'Content-Length' => $content-length;
-            }
-
-            $s, @h, $entity
+            push @h, 'Content-Length' => $content-length;
         }
-    });
+
+        $s, @h, $entity
+    }
 }

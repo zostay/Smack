@@ -20,3 +20,5 @@ test-p6wapi $md5-app, -> $c {
     my $res = $c.request(GET '/');
     is $res.header.field('Content-MD5'), '873e1d5cd2ff971fffaef7fcc12222c1', 'MD5 is correct';
 };
+
+done-testing;

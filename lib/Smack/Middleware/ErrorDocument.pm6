@@ -10,15 +10,14 @@ has Bool $.subrequest = False;
 has %.error-documents[Int];
 
 method call(%env) {
-    $.app.(%env).then(-> $p {
-        my (Int(Any) $s, @h, $b) = $p.result;
-        return $p unless is-error($s) && %.error-documents{$s};
+    callsame() then-with-response -> $s, @h, $e {
+        return unless is-error($s) && %.error-documents{$s};
 
         my $path = %.error-documents{$s};
         if $.subrequest {
             for %env.kv -> $key, $value {
                 unless $key ~~ /^p6w/ {
-                    %env{'p6wx.errordocument.' ~ $key} = $value;
+                    %env{"p6wx.errordocument.$key"} = $value;
                 }
             }
 
@@ -28,31 +27,21 @@ method call(%env) {
             %env<QUERY_STRING>   = '';
             %env<CONTENT_LENGTH> :delete;
 
-            $.app.(%env).then(-> $sub-p {
-                my (Int(Any) $sub-s, @sub-h, $sub-b) = $sub-p.result;
-
+            await callnext() then-with-response -> $sub-s, @sub-h, $sub-e {
                 if $sub-s == 200 {
-                    $s, @sub-h, $sub-b;
+                    $s, @sub-h, $sub-e;
                 }
 
-                $s, @h, $b;
-            });
+                $s, @h, $e;
+            }
         }
         else {
-            my $h = response-headers(@h);
-            $h.Content-Length.remove;
-            $h.Content-Encoding.remove;
-            $h.Transfer-Encoding.remove;
-            $h.Content-Type = Smack::MIME.mime-type($path);
+            header-remove(@h, 'Content-Length');
+            header-remove(@h, 'Content-Encoding');
+            header-remove(@h, 'Transfer-Encoding');
+            header-set(@h, Smack::MIME.mime-type($path));
 
-            @h = $h.for-P6W;
-
-            my $fh = open $path, :r;
-            $s, @h, Supply.on-demand(-> $s {
-                $s.emit($fh.read($.bytes-at-a-time))
-                    until $fh.eof;
-                $s.done;
-            });
+            open($path, :bin).Supply
         }
     });
 }
