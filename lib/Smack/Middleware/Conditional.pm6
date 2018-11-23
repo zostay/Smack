@@ -8,11 +8,16 @@ has &!middleware;
 has &.builder is required;
 
 method configure(%config) {
+    # Configure the app first
+    callsame();
+
+    # Then setup and configure the middleware
     &!middleware = &.builder.(&.app);
-    &!middleware.(%config) if &!middleware.returns ~~ Callable;
+    &!middleware = &!middleware.(%config)
+        if &!middleware.returns ~~ Callable;
 }
 
 method call(%env) {
     my &app = %env ~~ $.condition ?? &!middleware !! &.app;
-    return app(%env);
+    app(%env);
 }

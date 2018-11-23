@@ -7,12 +7,17 @@ use HTTP::Request;
 use HTTP::Message::P6WAPI;
 
 multi method request(HTTP::Request $request, %config) {
-    $request.uri.scheme //= 'http';
-    $request.uri.host   //= 'localhost';
+    # The lack of mutators on URI is super annoying
+    dd $request.uri.authority;
+    $request.uri.scheme('http')    unless $request.uri.scheme;
+    $request.uri.host('localhost') unless $request.uri.host;
+
+    note "HOST = $request.uri.host()";
 
     my %env = request-to-p6wapi($request, :%config);
 
-    my $response = response-from-p6wapi(self.run-app(%env, :%config));
+    my $p6w-res := self.run-app(%env, :%config);
+    my $response = response-from-p6wapi($p6w-res);
 
     CATCH {
         default {

@@ -6,7 +6,7 @@ unit class Smack::Middleware is Smack::Component;
 has &.app;
 
 method configure(%config) {
-   &!app = &.app.(%config) if &!app.returns ~~ Callable;
+    &!app = &.app.(%config) if &!app.returns ~~ Callable;
 }
 
 method call(%env) {

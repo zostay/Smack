@@ -53,13 +53,15 @@ sub response-encoding(
         // $fallback
 }
 
-sub header-remove(@h, $remove) {
+our sub header-remove(@h, $remove) {
     @h .= grep(*.key ne $remove)
 }
 
-sub header-set(@h, *%headers) {
-    for %headers.kv -> $k, $v {
-        my @i = @h.grep({ .key ne $k }, :k);
+our sub header-set(@h, *@headers, *%headers) {
+    for flat @headers, %headers -> $p {
+        my ($k, $v) = $p.kv;
+
+        my @i = @h.grep({ .key eq $k }, :k);
         if @i {
             # Replace first header value with this
             my $i = shift @i;
@@ -71,7 +73,7 @@ sub header-set(@h, *%headers) {
         }
 
         else {
-            # No existing header value, just add it
+            # No existing header value, add it
             push @h, $k => $v;
         }
     }

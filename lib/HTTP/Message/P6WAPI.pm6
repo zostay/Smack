@@ -65,14 +65,24 @@ multi response-from-p6wapi(@p6w-res (Int() $status, @headers, Supply() $entity))
     my HTTP::Response $res .= new($status);
     $res.header.field: |$_ for @headers;
     $res.set-code($status);
-    $res.content = buf8.new;
 
     my $encoding = $res.charset;
+
+    unless $res.is-text {
+        $res.content = buf8.new;
+    }
 
     react {
         whenever $entity -> $buf {
             given $buf {
-                when Blob { $res.add-content($buf) }
+                when Blob {
+                    if $res.is-text {
+                        $res.add-content($buf)
+                    }
+                    else {
+                        $res.add-content($buf.decode($encoding));
+                    }
+                }
                 when List {
                     $res.add-content(CRLF);
                     $res.add-content(CRLF);
@@ -83,13 +93,19 @@ multi response-from-p6wapi(@p6w-res (Int() $status, @headers, Supply() $entity))
                 }
                 when Associative { #`{ ignore for this purpose } }
                 default {
-                    $res.add-content("$buf".encode($encoding));
+                    if $res.is-text {
+                        $res.add-content($buf);
+                    }
+                    else {
+                        $res.add-content("$buf".encode($encoding));
+                    }
                 }
             }
         }
     }
 
-    $res.content = '' if $res.content.bytes == 0;
+    $res.content = '' if not $res.is-text
+                     and $res.content.bytes == 0;
 
     $res;
 }

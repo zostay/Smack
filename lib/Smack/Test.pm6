@@ -41,7 +41,9 @@ class Smack::Test {
 
     method run-config(:&app = &!app, :%config = %!config) {
         if &app.returns ~~ Callable {
-            app(%config);
+            # cache the result so we only configure once
+            &!app := app(%config);
+            &!app;
         }
         else {
             &app;

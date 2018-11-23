@@ -32,27 +32,27 @@ class X::Smack::Builder::UselessMount is X::Smack::Builder {
 class Smack::Builder {
     use Smack::App::URLMap;
 
-    has Callable @.middlewares;
+    has Callable @.builder-cbs;
     has Smack::App::URLMap $!urlmap;
 
-    multi method add-middleware(&mw) {
-        push @.middlewares, &mw;
+    multi method add-middleware(&builder-cb) {
+        push @.builder-cbs, &builder-cb;
         return;
     }
 
     multi method add-middleware($mw-class, |args) {
-        callwith -> &app {
+        self.add-middleware: -> &app {
             $mw-class.wrap-that(&app, |args);
         }
     }
 
-    multi method add-middleware-if(Mu $cond, &mw) {
+    multi method add-middleware-if(Mu $cond, &builder-cb) {
         use Smack::Middleware::Conditional;
 
-        push @.middlewares, -> &app {
+        push @.builder-cbs, -> &app {
             Smack::Middleware::Conditional.wrap-that(&app,
                 condition => $cond,
-                builder   => &mw,
+                builder   => &builder-cb,
             );
         }
 
@@ -60,7 +60,7 @@ class Smack::Builder {
     }
 
     multi method add-middleware-if(Mu $cond, $mw-class, |args) {
-        callwith $cond, -> &app {
+        self.add-middleware-if: $cond, -> &app {
             $mw-class.wrap-that(&app, |args);
         }
     }
@@ -76,11 +76,10 @@ class Smack::Builder {
     # This should work fine if you want to allow mount() and an app in your
     # build block. The consequence is that all mount()s are ignored.
     # CATCH { when X::Smack::Builder::UselessMount { .resume } }
-    method to-app($app) {
+    method to-app($app?) {
         with $app {
-            if $.is-mount-used {
-                die X::Smack::Builder::UselessMount.new;
-            }
+            die X::Smack::Builder::UselessMount.new
+                if $.is-mount-used;
 
             self.wrap-that($app);
         }
@@ -93,8 +92,8 @@ class Smack::Builder {
     }
 
     method wrap-that(&app is copy) {
-        for @.middlewares.reverse -> &mw {
-            &app = mw(&app);
+        for @.builder-cbs.reverse -> &builder-cb {
+            &app = builder-cb(&app);
         }
 
         &app;
@@ -102,9 +101,9 @@ class Smack::Builder {
 }
 
 proto enable(|) is export { * }
-multi enable(&mw) {
+multi enable(&builder-cb) {
     with $*SMACK-BUILDER {
-        .add-middleware(&mw);
+        .add-middleware(&builder-cb);
     }
     else {
         die X::Smack::Builder::NoBuilder.new(sub => "enable");
@@ -121,9 +120,9 @@ multi enable($mw-class, |args) {
 }
 
 proto enable-if(|) is export { * }
-multi enable-if(Mu $match, &mw) {
+multi enable-if(Mu $match, &builder-cb) {
     with $*SMACK-BUILDER {
-        .add-middleware-if($match, &mw)
+        .add-middleware-if($match, &builder-cb)
     }
     else {
         die X::Smack::Builder::NoBuilder.new(sub => "enable-if");
@@ -148,10 +147,10 @@ sub mount(Pair $map) is export {
     }
 }
 
-sub builder(&app-builder) is export {
+sub builder(&build-block) is export {
     my $*SMACK-BUILDER = Smack::Builder.new;
 
-    my $app = app-builder();
+    my $app = build-block();
 
     $app = $app.to-app if $app.defined && $app.^can('to-app');
 
