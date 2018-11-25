@@ -42,7 +42,7 @@ method setup-listener {
 method accept-loop(&app) {
     react {
         whenever $!listener -> $conn {
-            note "[note] new client connection";
+            #note "[note] new client connection";
 
             my Promise $header-done-promise .= new;
             my $header-done = $header-done-promise.vow;

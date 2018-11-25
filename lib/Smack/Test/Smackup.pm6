@@ -1,6 +1,6 @@
-unit class Smack::Test::Smackup;
-
 use v6;
+
+unit class Smack::Test::Smackup;
 
 use HTTP::UserAgent;
 
@@ -15,9 +15,10 @@ has $.port = $BASE-PORT + $port-iteration++;
 has $.skip-process-wait = %*ENV<TEST_SMACK_SKIP_PROCESS_WAIT>;
 has @.tests;
 has @.cmd = 'bin/smackup', '-a=t/apps/{app}', '-o=localhost', '-p={port}';
+has $.startup-timeout = 10;
+has $.test-timeout = 60;
 
 has $.err = '';
-has $!started = False;
 has $!client = HTTP::UserAgent.new;
 has $!server;
 has $!promise;
@@ -27,55 +28,69 @@ method !resolve-cmd() {
     .=subst(/'{' (<[ a .. z ]>+) '}'/, { %vars{$0} }, :g) for @!cmd;
 }
 
-method start() {
+method prepare-server() {
     self!resolve-cmd;
     $!server = Proc::Async.new($*EXECUTABLE, '-Ilib', |@.cmd);
-    $!server.stdout.tap(-> $v { $!started ||= $v ~~ /Starting/; self.diag($v) unless $!quiet });
-    $!server.stderr.tap(-> $v { $!err ~= $v; self.diag($v) unless $!quiet });
-    $!promise = $!server.start;
-    my $wait-interval = Supply.interval(1);
-
-    # Give it a second
-    my $wait-count;
-    react {
-        whenever $wait-interval -> $n {
-            done if $!started;
-            die "server startup took too long" if ($wait-count = $n) > 60;
-        }
-
-        whenever $!promise {
-            die "server quit:\n\n$!err";
-        }
-    }
-    sleep 1;
-    self.diag("Server took {$wait-count+1} seconds(ish) to start.");
-}
-
-method run-tests() {
-    for @.tests -> &test {
-        test($!client, "http://localhost:$.port/");
-    }
-}
-
-method stop() {
-    $!server.kill(Signal::SIGQUIT);
-
-    start {
-        sleep 10;
-        $!server.kill(Signal::SIGKILL);
-    };
-
-    my $status = await $!promise
-        unless $.skip-process-wait;
-    #is $status.exit, 0, 'exited ok';
 }
 
 method run() {
-    self.start;
-    self.run-tests;
+    self.prepare-server;
 
-    LEAVE {
-        self.stop;
+    my $startup-timer = Promise.in($!startup-timeout);
+    my $test-timer = Promise.in($!test-timeout);
+    my $ready = Promise.new;
+    my $finished = Promise.new;
+
+    my $start-time = now;
+
+    my Supplier $tests .= new;
+
+    react {
+        whenever $!server.stderr -> $v {
+            $!err ~= $v;
+            self.diag($v);
+        }
+        whenever $!server.stdout.lines -> $v {
+            my $started = ?($v ~~ /^Starting/);
+            if $started && !$ready {
+                sleep 1;
+                $ready.keep(now - $start-time);
+            }
+            self.diag($v);
+        }
+        whenever $startup-timer {
+            die "test server startup took too long (more than $!startup-timeout seconds)" if !$ready;
+        }
+        whenever $test-timer {
+            die "test server took too long running tests (more than $!test-timeout seconds)";
+        }
+        whenever $ready -> $startup-time {
+            self.diag("Server took $startup-time seconds to start.");
+            for @.tests -> &test {
+                $tests.emit: &test;
+            }
+            $tests.done;
+        }
+        whenever $tests -> &test {
+            test($!client, "http://localhost:$.port/");
+
+            LAST $finished.keep(now - $start-time);
+        }
+        whenever $finished -> $finish-time {
+            self.diag("Server took $finish-time seconds to run tests.");
+
+            $!server.kill(Signal::SIGQUIT);
+
+            start {
+                sleep 10;
+                $!server.kill(Signal::SIGKILL);
+            };
+        }
+        whenever $!server.start {
+            die "server quit during startup!\n\n$!err" unless $ready;
+            die "server quit early!\n\n$!err" unless $finished;
+            done;
+        }
     }
 }
 
@@ -139,7 +154,8 @@ method treat-err-as-tap() {
     }, 'treat-err-as-tap';
 }
 
-method diag(*@msg) {
+method diag(*@msg, :$loud = False) {
+    return if !$loud && $!quiet;
     my $msg = [~] @msg;
     note (("#" xx $msg.lines.elems) Z $msg.lines).join("\n");
 }

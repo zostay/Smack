@@ -2,11 +2,12 @@
 
 use v6;
 
-my $i = 0;
-
 sub check-type(%env, $got, $expected) {
+    my $i := %env<config-env.i>;
+
     my $err = %env<p6w.errors>;
     $expected.( %env{ $got } ) if $expected ~~ Callable;
+
     # fake TAP
     if %env{ $got } :!exists {
         $err.emit("not ok {++$i} # checking type of $got");
@@ -34,6 +35,8 @@ sub check-config(%env) {
 
 sub app(%env) {
     start {
+        my $i := %env<config-env.i> = 0;
+
         check-config(%env);
         check-type %env, 'REQUEST_METHOD', { $_ ~~ all(Str:D, *.chars > 0) };
         check-type %env, 'SCRIPT_NAME', { $_ ~~ all(Str:D, any('', m{^ "/"})) };
@@ -59,6 +62,6 @@ sub app(%env) {
 }
 
 sub config(%env) returns Callable {
-    check-config(%env);
+    #check-config(%env);
     &app;
 }
