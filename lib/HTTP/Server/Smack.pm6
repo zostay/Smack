@@ -17,7 +17,7 @@ has $!listener;
 
 my sub _errors {
     my $errors = Supplier.new;
-    $errors.Supply.act: -> $s { $*ERR.say("$s") };
+    $errors.Supply.tap: -> $s { $*ERR.say($s) };
     $errors;
 }
 
@@ -73,9 +73,38 @@ method accept-loop(&app) {
                 %env{ $key } := %!global{ $key };
             }
 
-            #$*SCHEDULER.cue: {
-                self.handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-done);
-            #};
+            my $res = (400, [ 'Content-Type' => 'text/plain' ], [ 'Bad Request' ]);
+
+            note "[debug] Received connection..." if $!debug;
+
+            my $header-end;
+            my $checked-through = 3;
+            my $whole-buf = Buf.new;
+
+            whenever HTTP::Request::Supply.parse-http($conn.Supply(:bin), :!debug) -> %request {
+
+                # We start a thread here because we need to wait for the response.
+                # If we do that in the same thread as parse-http(), parse-http()
+                # may never get a chance to resume: DEADLOCK.
+                #
+                # TODO Figure out why this is necessary and if there is a better way.
+                start {
+                #{
+                    %env = |%env, |%request;
+
+                    my $uri = %env<REQUEST_URI>;
+                    my (Str $path, Str $query-string) = $uri.split('?', 2);
+                    %env<PATH_INFO>        = uri_decode($path);
+                    %env<QUERY_STRING>     = $query-string // '';
+                    %env<CONTENT_LENGTH> //= Int;
+                    %env<CONTENT_TYPE>   //= Str;
+
+                    $res = app(%env);
+
+                    # We stop here until the response is done beofre handling another request
+                    await self.handle-response($res, :$conn, :%env, :$ready, :$header-done, :$body-done);
+                }
+            }
         }
     }
 }
@@ -85,40 +114,6 @@ constant LF = 0x0a;
 
 method !temp-file {
     ($*TMPDIR ~ '/' ~ $*USER ~ '.' ~ ([~] ('A' .. 'Z').roll(8)) ~ '.' ~ $*PID).IO
-}
-
-method handle-connection(&app, :%env, :$conn, :$ready, :$header-done, :$body-done) {
-    my $res = (400, [ 'Content-Type' => 'text/plain' ], [ 'Bad Request' ]);
-
-    note "[debug] Received connection..." if $!debug;
-
-    my $header-end;
-    my $checked-through = 3;
-    my $whole-buf = Buf.new;
-
-    whenever HTTP::Request::Supply.parse-http($conn.Supply(:bin), :!debug) -> %request {
-
-        # We start a threaad here because we need to wait for the response.
-        # If we do that in the same thread as parse-http(), parse-http()
-        # may never get a chance to resume: DEADLOCK.
-        #
-        # TODO Figure out why this is necessary and if there is a better way.
-        start {
-            %env = |%env, |%request;
-
-            my $uri = %env<REQUEST_URI>;
-            my (Str $path, Str $query-string) = $uri.split('?', 2);
-            %env<PATH_INFO>        = uri_decode($path);
-            %env<QUERY_STRING>     = $query-string // '';
-            %env<CONTENT_LENGTH> //= Int;
-            %env<CONTENT_TYPE>   //= Str;
-
-            $res = app(%env);
-
-            # We stop here until the response is done beofre handling another request
-            await self.handle-response($res, :$conn, :%env, :$ready, :$header-done, :$body-done);
-        }
-    }
 }
 
 method send-header($status, @headers, $conn) returns Str {

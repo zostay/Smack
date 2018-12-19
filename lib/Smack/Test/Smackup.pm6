@@ -51,7 +51,7 @@ method run() {
             self.diag($v);
         }
         whenever $!server.stdout.lines -> $v {
-            my $started = ?($v ~~ /^Starting/);
+            my $started = ?($v ~~ /^ Starting >>/);
             if $started && !$ready {
                 sleep 1;
                 $ready.keep(now - $start-time);
@@ -100,7 +100,8 @@ method treat-err-as-tap() {
         my $i = 1;
         my $plan = 0;
 
-        for self.err.lines {
+        for $.err.lines {
+
             # Parse expected "TAP"
             when /^
                 \s*

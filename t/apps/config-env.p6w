@@ -2,20 +2,25 @@
 
 use v6;
 
-sub check-type(%env, $got, $expected) {
-    my $i := %env<config-env.i>;
+my $i = 0;
 
+sub check-type(%env, $got, $expected) {
     my $err = %env<p6w.errors>;
-    $expected.( %env{ $got } ) if $expected ~~ Callable;
 
     # fake TAP
+
+    # First check if the env is missing
     if %env{ $got } :!exists {
         $err.emit("not ok {++$i} # checking type of $got");
         $err.emit("# value for $got does not exist");
     }
+
+    # Verify that the env is as expected
     if %env{ $got } ~~ $expected {
         $err.emit("ok {++$i} # checking type of $got");
     }
+
+    # Give a nice report if not
     else {
         $err.emit("not ok {++$i} # checking type of $got");
         $err.emit("#\texpected: $expected.perl()");
@@ -35,8 +40,6 @@ sub check-config(%env) {
 
 sub app(%env) {
     start {
-        my $i := %env<config-env.i> = 0;
-
         check-config(%env);
         check-type %env, 'REQUEST_METHOD', { $_ ~~ all(Str:D, *.chars > 0) };
         check-type %env, 'SCRIPT_NAME', { $_ ~~ all(Str:D, any('', m{^ "/"})) };
@@ -62,6 +65,6 @@ sub app(%env) {
 }
 
 sub config(%env) returns Callable {
-    #check-config(%env);
+    check-config(%env);
     &app;
 }
