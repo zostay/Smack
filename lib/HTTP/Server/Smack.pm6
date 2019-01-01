@@ -31,9 +31,12 @@ has %!global =
     'p6w.protocol.enabled' => set('request-response'),
     ;
 
+method start() {
+    self.setup-listener;
+}
+
 method run(&app is copy) {
     &app = app(%!global) if &app.returns ~~ Callable;
-    self.setup-listener;
     self.accept-loop(&app);
 }
 

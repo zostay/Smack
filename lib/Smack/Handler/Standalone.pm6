@@ -11,6 +11,7 @@ has $.http = HTTP::Server::Smack.new(
 );
 
 method run(&app) {
+    $!http.start;
     say "Starting on http://$!host:$!port/...";
     $!http.run(&app);
 }
