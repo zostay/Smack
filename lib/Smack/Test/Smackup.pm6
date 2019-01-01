@@ -2,7 +2,7 @@ use v6;
 
 unit class Smack::Test::Smackup;
 
-use HTTP::UserAgent;
+use Smack::Client;
 
 # TODO Replace when IO has the ability to let IO assign the port and tell us
 # which port was assigned.
@@ -17,9 +17,10 @@ has @.tests;
 has @.cmd = 'bin/smackup', '-a=t/apps/{app}', '-o=localhost', '-p={port}';
 has $.startup-timeout = 10;
 has $.test-timeout = 60;
+has $.quit-timeout = 10;
 
 has $.err = '';
-has $!client = HTTP::UserAgent.new;
+has $!client = Smack::Client.new;
 has $!server;
 has $!promise;
 
@@ -30,6 +31,7 @@ method !resolve-cmd() {
 
 method prepare-server() {
     self!resolve-cmd;
+    note "# Running: $*EXECUTABLE -Ilib {@.cmd.join(' ')}";
     $!server = Proc::Async.new($*EXECUTABLE, '-Ilib', |@.cmd);
 }
 
@@ -43,8 +45,6 @@ method run() {
 
     my $start-time = now;
 
-    my Supplier $tests .= new;
-
     react {
         whenever $!server.stderr -> $v {
             $!err ~= $v;
@@ -53,7 +53,6 @@ method run() {
         whenever $!server.stdout.lines -> $v {
             my $started = ?($v ~~ /^ Starting >>/);
             if $started && !$ready {
-                sleep 1;
                 $ready.keep(now - $start-time);
             }
             self.diag($v);
@@ -66,25 +65,20 @@ method run() {
         }
         whenever $ready -> $startup-time {
             self.diag("Server took $startup-time seconds to start.");
-            for @.tests -> &test {
-                $tests.emit: &test;
-            }
-            $tests.done;
-        }
-        whenever $tests -> &test {
-            test($!client, "http://localhost:$.port/");
+            # Run test jobs asynchronously on their own threads
+            my $tests = @.tests.Supply.start(-> &test {
+                test($!client, "http://localhost:$.port/");
+            }).migrate;
 
-            LAST $finished.keep(now - $start-time);
+            # wait for all tests to complete
+            whenever $tests {
+                LAST $finished.keep(now - $start-time);
+            }
         }
         whenever $finished -> $finish-time {
             self.diag("Server took $finish-time seconds to run tests.");
 
-            $!server.kill(Signal::SIGQUIT);
-
-            start {
-                sleep 10;
-                $!server.kill(Signal::SIGKILL);
-            };
+            self.stop;
         }
         whenever $!server.start {
             die "server quit during startup!\n\n$!err" unless $ready;
@@ -92,6 +86,17 @@ method run() {
             done;
         }
     }
+}
+
+method stop() {
+    self.diag("Sending QUIT to server.");
+
+    $!server.kill(Signal::SIGQUIT);
+
+    Promise.in($!quit-timeout).then: {
+        self.diag("Sending KILL to server.");
+        $!server.kill(Signal::SIGKILL);
+    };
 }
 
 method treat-err-as-tap() {

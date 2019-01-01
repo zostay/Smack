@@ -1,14 +1,13 @@
+use v6;
 use Smack::Test;
 
 unit class Smack::Test::MockHTTP is Smack::Test;
-use v6;
 
 use HTTP::Request;
 use HTTP::Message::P6WAPI;
 
 multi method request(HTTP::Request $request, %config) {
     # The lack of mutators on URI is super annoying
-    dd $request.uri.authority;
     $request.uri.scheme('http')    unless $request.uri.scheme;
     $request.uri.host('localhost') unless $request.uri.host;
 

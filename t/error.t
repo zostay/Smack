@@ -7,11 +7,12 @@ use Smack::Test::Smackup;
 
 my @tests =
     -> $c, $u {
-        use HTTP::Request;
-        my $req = HTTP::Request.new(POST => $u);
-        $req.add-content("ok 1 # got some content\n");
-        $req.add-content("1..1");
-        my $response = $c.request($req);
+        use Smack::Client::Request::Common;
+        my $req = POST($u, content => supply {
+            emit "ok 1 # got some content\n";
+            emit "1..1\n";
+        });
+        my $response = await $c.request($req);
         ok $response.is-success, 'request is ok';
     },
     ;
