@@ -5,7 +5,7 @@ unit class HTTP::Server::Smack;
 use URI::Encode;
 use DateTime::Format::RFC2822;
 use HTTP::Headers;
-use HTTP::Request::Supply;
+use HTTP::Supply::Request;
 use HTTP::Status;
 
 has Str $.host;
@@ -84,15 +84,9 @@ method accept-loop(&app) {
             my $checked-through = 3;
             my $whole-buf = Buf.new;
 
-            whenever HTTP::Request::Supply.parse-http($conn.Supply(:bin), :!debug) -> %request {
+            whenever HTTP::Supply::Request.parse-http($conn.Supply(:bin), :!debug) -> %request {
 
-                # We start a thread here because we need to wait for the response.
-                # If we do that in the same thread as parse-http(), parse-http()
-                # may never get a chance to resume: DEADLOCK.
-                #
-                # TODO Figure out why this is necessary and if there is a better way.
                 start {
-                #{
                     %env = |%env, |%request;
 
                     my $uri = %env<REQUEST_URI>;
@@ -102,7 +96,9 @@ method accept-loop(&app) {
                     %env<CONTENT_LENGTH> //= Int;
                     %env<CONTENT_TYPE>   //= Str;
 
+                    note "[debug] starting app" if $!debug;
                     $res = app(%env);
+                    note "[debug] app responded" if $!debug;
 
                     # We stop here until the response is done beofre handling another request
                     await self.handle-response($res, :$conn, :%env, :$ready, :$header-done, :$body-done);
@@ -126,6 +122,7 @@ method send-header($status, @headers, $conn) returns Str {
     $conn.write("HTTP/1.1 $status $status-msg\x0d\x0a".encode('ISO-8859-1'));
     $conn.write("{.key}: {.value}\x0d\x0a".encode('ISO-8859-1')) for @headers;
     $conn.write("\x0d\x0a".encode('ISO-8859-1'));
+    note "[debug] sent header" if $!debug;
 
     # Detect encoding
     my $ct = @headers.first(*.key.fc eq 'content-type'.fc);
@@ -136,12 +133,14 @@ method send-header($status, @headers, $conn) returns Str {
 
 method handle-response(Promise() $promise, :$conn, :%env, :$ready, :$header-done, :$body-done) {
     $promise.then({
+        note "[debug] app response returned header" if $!debug;
+
         my (Int() $status, List() $headers, Supply() $body) := $promise.result;
         self.handle-inner($status, $headers, $body, $conn, :$ready, :$header-done, :$body-done, :%env);
 
-        # consume and discard the bytes in the iput stream, just in case the app
+        # consume and discard the bytes in the input stream, just in case the app
         # didn't read from it.
-        %env<p6w.input>.tap if %env<p6w.input> ~~ Supply:D;
+        #%env<p6w.input>.tap if %env<p6w.input> ~~ Supply:D;
 
         # keep the promise the same
         $promise.result;
@@ -158,6 +157,7 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$heade
                 when Blob { $v }
                 default   { $v.Str.encode($charset) }
             };
+            note "[debug] sending $buf.bytes() bytes" if $!debug;
             $conn.write($buf) if $buf;
 
             LAST {
@@ -166,18 +166,22 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$heade
                 my $te = @headers.first(*.key.fc eq 'transfer-encoding'.fc);
 
                 # Close the connection if requested by the client
-                if %env<HTTP_CONNECTION>.fc eq 'close'.fc {
+                if (%env<HTTP_CONNECTION>//'').fc eq 'close'.fc {
+                    note "[debug] closing client connection" if $!debug;
                     $conn.close;
                 }
 
-                # Close the connection if the app did not provide content
-                # length via:
-                #   - Content-Length: N
-                #   - Transfer-Encoding: chunked
-                #   - Content-Type: multipart/byteranges
+                # # Close the connection if the app did not provide content
+                # # length via:
+                # #   - Content-Length: N
+                # #   - Transfer-Encoding: chunked
+                # #   - Content-Type: multipart/byteranges
                 elsif !defined($cl)
                         && (!defined($te) || $te.value.fc ne 'chunked'.fc)
-                        && (!defined($ct) || $ct.value !~~ m:i{ ^ "multipart/byteranges" >> }) {
+                        # NYI
+                        #&& (!defined($ct) || $ct.value !~~ m:i{ ^ "multipart/byteranges" >> })
+                {
+                    note "[debug] closing client connection" if $!debug;
                     $conn.close;
                 }
 
@@ -186,6 +190,7 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$heade
 
             QUIT {
                 my $x = $_;
+                note "[warn] closing client connection on error";
                 $conn.close;
                 CATCH {
                     # this is stupid, IO::Socket needs better exceptions
