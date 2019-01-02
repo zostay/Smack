@@ -7,6 +7,7 @@ use DateTime::Format::RFC2822;
 use HTTP::Headers;
 use HTTP::Supply::Request;
 use HTTP::Status;
+use Smack::URI;
 
 has Str $.host;
 has Int $.port;
@@ -89,9 +90,11 @@ method accept-loop(&app) {
                 start {
                     %env = |%env, |%request;
 
-                    my $uri = %env<REQUEST_URI>;
-                    my (Str $path, Str $query-string) = $uri.split('?', 2);
-                    %env<PATH_INFO>        = uri_decode($path);
+                    my $uri = Smack::URI.new(%env<REQUEST_URI>);
+                    my $path         = ~$uri.path;
+                    my $query-string = ~$uri.query;
+
+                    %env<PATH_INFO>        = $path;
                     %env<QUERY_STRING>     = $query-string // '';
                     %env<CONTENT_LENGTH> //= Int;
                     %env<CONTENT_TYPE>   //= Str;
