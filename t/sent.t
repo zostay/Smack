@@ -6,6 +6,7 @@ use Test;
 use lib 't/lib';
 use HTTP::Headers;
 use Smack::Test::Smackup;
+use Smack::Client::Request::Common;
 
 my @tests =
     -> $c, $u {
@@ -13,13 +14,13 @@ my @tests =
 
         # Run three times
         for ^3 {
-            $response = $c.get($u);
+            $response = await $c.request(GET($u));
             ok $response.is-success, 'successfully made a request';
             ok $response.content, 'Hello World';
         }
 
         # Verify that the server kept the done promise thrice
-        $response = $c.get("{$u}check");
+        $response = await $c.request(GET("{$u}check"));
         ok($response.is-success, 'successfully made a request');
         is $response.content, "3", "sent 3 times";
     };
