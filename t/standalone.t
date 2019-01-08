@@ -5,17 +5,17 @@ use v6;
 use Test;
 use HTTP::Headers;
 use Smack::Test::Smackup;
+use Smack::Client::Request::Common;
 
 my @tests =
     -> $c, $u {
-        my $response = $c.get($u);
+        my $response = await $c.request(GET($u));
         ok($response.is-success, 'successfully made a request');
 
         is($response.code, 200, 'returned 200');
-        my $headers = HTTP::Headers.new: $response.header.hash, :quiet;
 
-        is $headers.elems, 1, 'only one header set';
-        is $headers.Content-Type, 'text/plain', 'Content-Type: text/plain';
+        is $response.headers.elems, 1, 'only one header set';
+        is $response.Content-Type, 'text/plain', 'Content-Type: text/plain';
 
         is $response.content, 'Hello World', 'Content is Hello World';
     };

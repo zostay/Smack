@@ -37,6 +37,9 @@ method start() {
 }
 
 method run(&app is copy) {
+    die "You must start the server before you can run it."
+        unless $!listener;
+
     &app = app(%!global) if &app.returns ~~ Callable;
     self.accept-loop(&app);
 }
@@ -85,7 +88,10 @@ method accept-loop(&app) {
             my $checked-through = 3;
             my $whole-buf = Buf.new;
 
-            whenever HTTP::Supply::Request.parse-http($conn.Supply(:bin), :$!debug) -> %request {
+            my $bin-conn = $conn.Supply(:bin);
+            $bin-conn .= do({ note "[debug] ", $_ }) if $!debug;
+
+            whenever HTTP::Supply::Request.parse-http($bin-conn, :$!debug) -> %request {
 
                 start {
                     %env = |%env, |%request;
