@@ -85,7 +85,7 @@ method accept-loop(&app) {
             my $checked-through = 3;
             my $whole-buf = Buf.new;
 
-            whenever HTTP::Supply::Request.parse-http($conn.Supply(:bin), :!debug) -> %request {
+            whenever HTTP::Supply::Request.parse-http($conn.Supply(:bin), :$!debug) -> %request {
 
                 start {
                     %env = |%env, |%request;
@@ -124,7 +124,7 @@ method send-header($status, @headers, $conn) returns Str {
     # Write headers in ISO-8859-1 encoding
     $conn.write("HTTP/1.1 $status $status-msg\x0d\x0a".encode('ISO-8859-1'));
     $conn.write("{.key}: {.value}\x0d\x0a".encode('ISO-8859-1')) for @headers;
-    $conn.write("\x0d\x0a".encode('ISO-8859-1'));
+    await $conn.write("\x0d\x0a".encode('ISO-8859-1'));
     note "[debug] sent header" if $!debug;
 
     # Detect encoding
@@ -159,9 +159,11 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$heade
             my Blob $buf = do given ($v) {
                 when Blob { $v }
                 default   { $v.Str.encode($charset) }
-            };
+            }
             note "[debug] sending $buf.bytes() bytes" if $!debug;
-            $conn.write($buf) if $buf;
+            #note "[debug] sending $buf.gist()" if $!debug;
+            await $conn.write($buf);
+            note "[debug] sent $buf.bytes() bytes" if $!debug;
 
             LAST {
                 my $ct = @headers.first(*.key.fc eq 'content-type'.fc);
@@ -178,7 +180,7 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$heade
                 # # length via:
                 # #   - Content-Length: N
                 # #   - Transfer-Encoding: chunked
-                # #   - Content-Type: multipart/byteranges
+                # #   - Content-Type: multipart/byteranges (NYI)
                 elsif !defined($cl)
                         && (!defined($te) || $te.value.fc ne 'chunked'.fc)
                         # NYI

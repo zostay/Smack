@@ -22,25 +22,26 @@ multi method request(Smack::Client::Request $req --> Promise:D) {
 
         my $conn = await IO::Socket::Async.connect($req.host, $req.port, :$!enc);
 
-        $conn.Supply.tap: { note "HERE" };
-
-        LEAVE $conn.close;
-
         $req.send($conn);
 
         my $request-took-too-long = Promise.in($!request-timeout);
+        my $finished-response = Promise.new;
 
         my @res = await supply {
             whenever HTTP::Supply::Response.parse-http($conn.Supply(:bin), :!debug) -> $res {
 
-                # Begin consuming the response body as quickly as we can and cache
-                # it for reading by the caller.
-                # my $body = Supplier::Preserving.new;
-                # $res[2].tap: { $body.emit($_) }
-                #     done => { $conn.close },
-                #     quit => { $conn.close };
+                # Beginning collecting the body and be ready to close this off
+                # for a single request when the body is finished.
+                my $body = Supplier::Preserving.new;
+                $res[2].tap: { $body.emit($_) },
+                    done => { $conn.close; $body.done; $finished-response.keep },
+                    quit => { .note; $conn.close; $finished-response.keep },
+                    ;
 
-                emit [ $res[0], $res[1], $res[2] ];#$body.Supply ];
+                emit ($res[0], $res[1], $body.Supply);
+            }
+
+            whenever $finished-response {
                 done;
             }
 

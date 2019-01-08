@@ -45,6 +45,9 @@ method run() {
 
     my $start-time = now;
 
+    # Make sure we kill the server at the end, regardless of how we quit
+    LEAVE { self.stop }
+
     react {
         whenever $!server.stderr -> $v {
             $!err ~= $v;

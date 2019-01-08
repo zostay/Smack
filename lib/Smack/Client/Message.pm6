@@ -8,7 +8,7 @@ has Str $.protocol is rw = 'HTTP/1.1';
 
 has HTTP::Headers $.headers is rw handles <
     Content-Type Content-Length header
-> .= new;
+> .= new(:quiet);
 
 has Supply $.body is rw;
 has Bool $!tweaked-body = False;
@@ -21,13 +21,34 @@ method body(Smack::Client::Message:D: --> Supply) is rw {
     );
 }
 
+method encoding(Smack::Client::Message:D: --> Str:D) {
+    $.headers.Content-Type.charset // $.enc // 'iso-8859-1';
+}
+
+has Str $!_content;
+
+#| Grab the content all-or-nothing style.
+method content(Smack::Client::Message:D: --> Str) {
+    #$!_content //= await $.body.reduce(*~*).map(*.decode($.encoding)) // '';
+    with $!_content { $!_content }
+    else {
+        $!_content = '';
+        react {
+            whenever $.body {
+                .note;
+                $!_content ~= .decode($.encoding);
+            }
+        }
+        $!_content;
+    }
+}
+
 method !only-emit-blobs() {
     return if $!tweaked-body;
 
-    my $enc = $.headers.Content-Type.charset // $.enc;
     $.body .= map({
         when Blob { $_ }
-        default { .gist.encode($enc) }
+        default { .gist.encode($.encoding) }
     });
 
     $!tweaked-body++;
@@ -56,6 +77,9 @@ method send(Smack::Client::Message:D: $handle --> Nil) {
             }).reduce(&infix:<~>);
             $.headers.Content-Length = $content-length;
             supply { emit $whole-body }
+        }
+        else {
+            $body-supply = $.body;
         }
     }
 
