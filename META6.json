@@ -8,6 +8,7 @@
     },
     "depends" : [
         "DateTime::Format",
+        "Digest::MD5",
         "Hash::MultiValue",
         "HTTP::UserAgent",
         "HTTP::Easy",
