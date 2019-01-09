@@ -20,9 +20,9 @@ sub cascade-app($p, :%env, :%catch, :@remaining-apps) {
 
         # More than one left, try it
         else {
-            next-app(%env).then(
-                &cascade-app.assuming(:%env, :%catch, :@remaining-apps);
-            );
+            next-app(%env).then(-> $p {
+                cascade-app($p, :%env, :%catch, :@remaining-apps);
+            });
         }
     }
 

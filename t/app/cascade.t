@@ -1,7 +1,7 @@
 #!/usr/bin/env perl6
 use v6;
 
-use HTTP::Request::Common;
+use Smack::Client::Request::Common;
 use Smack::App::Cascade;
 use Smack::App::File;
 use Smack::Test;
@@ -27,7 +27,7 @@ subtest {
 
         $res = $c.request(GET '/foo');
         is $res.code, 404, 'no finding foo';
-        is $res.decoded-content, 'Custom 404 Page', 'custom app fallback';
+        is $res.content, 'Custom 404 Page', 'custom app fallback';
 
         $res = $c.request(GET '/foreach.t');
         is $res.code, 200, 'found foreach.t';
