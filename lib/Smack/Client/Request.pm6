@@ -37,10 +37,21 @@ multi method to-p6wapi(Smack::Client::Request:D: --> Hash) {
 multi method to-p6wapi(Smack::Client::Request:D: %config --> Hash) {
     my %env = |%config,
         HTTP_HOST           => $.host,
-        |$.headers.for-P6WAPI,
+        |$.headers.map({
+            if .key eq 'content-length' {
+                CONTENT_LENGTH => .value
+            }
+            elsif .key eq 'content-type' {
+                CONTENT_TYPE => .value
+            }
+            else {
+                'HTTP_' ~ .name.uc.trans('-' => '_') => .value
+            }
+        }),
         SERVER_PORT         => $.port,
         SERVER_NAME         => $.host,
         SCRIPT_NAME         => '',
+        REQUEST_METHOD      => $.method,
         'p6w.url-scheme'    => $.uri.scheme,
         'p6w.body.encoding' => 'UTF-8',
         'p6w.protocol'      => 'request-response',

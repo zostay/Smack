@@ -90,9 +90,29 @@ multi unpack-response(Promise:D $p, &response-handler) {
     unpack-response($res, &response-handler);
 }
 
-sub infix:<then-with-response> ($p, $c) is export {
+=begin pod
+
+=head2 sub infix:<then-with-response>
+
+    sub infix:<then-with-response> ($res, &callback --> Promise:D)
+
+This operator can be used by middleware as a shorthand to perform common tasks. The promise, C<$res>, is a response from an P6WAPI application, either a Promise or the 3-element list. The given callback, C<&callback>, will be called with the 3-element list form, similar to this:
+
+    sub callback(Int:D $code, @headers, Supply:D $entity)
+
+The result of the callback will determine what is done next.
+
+=item C<Nil>. If an undefined value is returned (such as Nil), then the response is returned as it was passed to the callback without any change.
+
+=item C<Supply>. If the value returned is a supply, the entity is replaced int eh response, but the status code and headers are returned as they were given to the callback with no changes.
+
+=item I<Anything else>. Anything else will be treated as a replacement response. This should probably be a Promise, but any acceptable P6WAPI response should be possible.
+
+=end pod
+
+sub infix:<then-with-response> (Promise:D $p, &c --> Promise:D) is export {
     $p.then: -> $then {
-        with unpack-response($then, $c) -> $r {
+        with unpack-response($then, &c) -> $r {
             when Supply {
                 my ($s, $h) = |$then.result;
                 $s, $h, $r

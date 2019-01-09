@@ -13,7 +13,7 @@ method call(%env) {
                      self.not-modified-since(@h, %env);
 
         return unless @checks;
-        return unless all(|@checks);
+        return unless all(@checks);
 
         my @head = @h.grep({
             .key ne 'Content-Type' | 'Content-Length' | 'Content-Disposition'
