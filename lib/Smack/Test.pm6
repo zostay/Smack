@@ -57,11 +57,11 @@ class Smack::Test {
         the-app(%env);
     }
 
-    multi method request(Smack::Client::Request $request) {
+    multi method request(Smack::Client::Request $request --> Promise:D) {
         self.request($request, %.config);
     }
 
-    multi method request(Smack::Client::Request $request, %config) { ... }
+    multi method request(Smack::Client::Request $request, %config --> Promise:D) { ... }
 
     my sub test-factory { $*TEST_FACTORY // ($DEFAULT_TEST_FACTORY //= Smack::TestFactory.new) }
 

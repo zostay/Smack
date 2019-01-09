@@ -7,26 +7,28 @@ use Smack::Client::Request;
 use Smack::Client::Response;
 
 multi method request(Smack::Client::Request $request, %config) {
-    # The lack of mutators on URI is super annoying
-    $request.uri.scheme('http')    unless $request.uri.scheme;
-    $request.uri.host('localhost') unless $request.uri.host;
+    start {
+        # The lack of mutators on URI is super annoying
+        $request.uri.scheme('http')    unless $request.uri.scheme;
+        $request.uri.host('localhost') unless $request.uri.host;
 
-    my %env = $request.to-p6wapi(:%config);
+        my %env = $request.to-p6wapi(:%config);
 
-    my $p6w-res := self.run-app(%env, :%config);
-    my Smack::Client::Response $response .= from-p6wapi($p6w-res);
+        my $p6w-res := self.run-app(%env, :%config);
+        my Smack::Client::Response $response .= from-p6wapi($p6w-res);
 
-    CATCH {
-        default {
-            .note;
-            return Smack::Client::Response.from-p6wapi(start {
-                500,
-                [ Content-Type => 'text/plain' ],
-                [ .message ~ .backtrace ]
-            });
+        CATCH {
+            default {
+                .note;
+                return Smack::Client::Response.from-p6wapi(start {
+                    500,
+                    [ Content-Type => 'text/plain' ],
+                    [ .message ~ .backtrace ]
+                });
+            }
         }
-    }
 
-    $response.request = $request;
-    $response;
+        $response.request = $request;
+        $response;
+    }
 }
