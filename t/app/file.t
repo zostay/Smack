@@ -23,7 +23,7 @@ subtest {
         my $response = await $c.request(GET "/whatever");
         ok $response.is-success, 'request is ok';
 
-        is $response.Content-Type.primary, 'text/plain', 'expected content type';
+        is $response.Content-Type.primary, 'application/json', 'expected content type';
         is $response.code, 200, 'response status is still 200';
     };
 
@@ -32,7 +32,7 @@ subtest {
 subtest {
     my $app = Smack::App::File.new(
         file         => 'META6.json'.IO,
-        content-type => 'application/json',
+        content-type => 'text/plain',
     );
 
     test-p6wapi $app, -> $c {
@@ -43,11 +43,11 @@ subtest {
 
     test-p6wapi $app, -> $c {
         my $response = await $c.request(GET '/whatever');
-        is $response.Content-Type, 'application/json', 'expected content type';
+        is $response.Content-Type.primary, 'text/plain', 'expected content type';
         is $response.code, 200, 'status is 200';
     };
 
-}, 'serving a single file with custom content=type';
+}, 'serving a single file with custom content-type';
 
 subtest {
     my $app-secure = Smack::App::File.new(root => $*PROGRAM.parent);
