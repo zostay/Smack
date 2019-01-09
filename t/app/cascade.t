@@ -16,20 +16,20 @@ subtest {
     };
 
     push $cascade.apps, Smack::App::File.new(root => 't/middleware'.IO).to-app;
-    push $cascade.apps, Smack::App::File.new(root => 't/util'.IO).to-app;
+    push $cascade.apps, Smack::App::File.new(root => 't/builder'.IO).to-app;
     push $cascade.apps, -> %env {
         start { 404, [], [ 'Custom 404 Page' ] }
     };
 
     test-p6wapi $cascade, -> $c {
-        my $res = await $c.request(GET '/access_log.t');
+        my $res = await $c.request(GET '/conditional-get.t');
         is $res.code, 200, 'found access_log.t';
 
         $res = await $c.request(GET '/foo');
         is $res.code, 404, 'no finding foo';
         is $res.content, 'Custom 404 Page', 'custom app fallback';
 
-        $res = await $c.request(GET '/urlmap.t');
+        $res = await $c.request(GET '/oo.t');
         is $res.code, 200, 'found urlmap.t';
     };
 }
