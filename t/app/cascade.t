@@ -29,8 +29,8 @@ subtest {
         is $res.code, 404, 'no finding foo';
         is $res.content, 'Custom 404 Page', 'custom app fallback';
 
-        $res = await $c.request(GET '/foreach.t');
-        is $res.code, 200, 'found foreach.t';
+        $res = await $c.request(GET '/urlmap.t');
+        is $res.code, 200, 'found urlmap.t';
     };
 }
 
