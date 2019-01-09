@@ -7,7 +7,7 @@ use Smack::Test;
 use Test;
 
 subtest {
-    my $app = Smack::App::File.new(file => 'META.info'.IO);
+    my $app = Smack::App::File.new(file => 'META6.json'.IO);
 
     test-p6wapi $app, -> $c {
         my $response = await $c.request(GET '/');
@@ -31,7 +31,7 @@ subtest {
 
 subtest {
     my $app = Smack::App::File.new(
-        file         => 'META.info'.IO,
+        file         => 'META6.json'.IO,
         content-type => 'application/json',
     );
 
