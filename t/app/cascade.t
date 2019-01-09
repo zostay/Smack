@@ -11,7 +11,7 @@ subtest {
     my $cascade = Smack::App::Cascade.new;
 
     test-p6wapi $cascade, -> $c {
-        my $res = $c.request(GET '/');
+        my $res = await $c.request(GET '/');
         is $res.code, 404, 'no apps get a 404';
     };
 
@@ -22,14 +22,14 @@ subtest {
     };
 
     test-p6wapi $cascade, -> $c {
-        my $res = $c.request(GET '/access_log.t');
+        my $res = await $c.request(GET '/access_log.t');
         is $res.code, 200, 'found access_log.t';
 
-        $res = $c.request(GET '/foo');
+        $res = await $c.request(GET '/foo');
         is $res.code, 404, 'no finding foo';
         is $res.content, 'Custom 404 Page', 'custom app fallback';
 
-        $res = $c.request(GET '/foreach.t');
+        $res = await $c.request(GET '/foreach.t');
         is $res.code, 200, 'found foreach.t';
     };
 }

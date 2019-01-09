@@ -10,7 +10,7 @@ subtest {
     my $app = Smack::App::File.new(file => 'META.info'.IO);
 
     test-p6wapi $app, -> $c {
-        my $response = $c.request(GET '/');
+        my $response = await $c.request(GET '/');
         ok $response.is-success, 'request is ok';
 
         is $response.code, 200, 'response status is 200';
@@ -20,7 +20,7 @@ subtest {
     };
 
     test-p6wapi $app, -> $c {
-        my $response = $c.request(GET "/whatever");
+        my $response = await $c.request(GET "/whatever");
         ok $response.is-success, 'request is ok';
 
         is $response.Content-Type.primary, 'text/plain', 'expected content type';
@@ -36,13 +36,13 @@ subtest {
     );
 
     test-p6wapi $app, -> $c {
-        my $response = $c.request(GET '/');
+        my $response = await $c.request(GET '/');
         is $response.code, 200, 'status is 200';
         like $response.content, rx{Smack}, 'found expected content';
     };
 
     test-p6wapi $app, -> $c {
-        my $response = $c.request(GET '/whatever');
+        my $response = await $c.request(GET '/whatever');
         is $response.Content-Type, 'application/json', 'expected content type';
         is $response.code, 200, 'status is 200';
     };
@@ -53,13 +53,13 @@ subtest {
     my $app-secure = Smack::App::File.new(root => $*PROGRAM.parent);
 
     test-p6wapi $app-secure, -> $c {
-        my $response = $c.request(GET '/file.t');
+        my $response = await $c.request(GET '/file.t');
         is $response.code, 200, 'status is 200';
         like $response.content, rx:sigspace{We will find this literal string}, 'found literal string';
     };
 
     test-p6wapi $app-secure, -> $c {
-        my $response = $c.request(GET '/../app/file.t');
+        my $response = await $c.request(GET '/../app/file.t');
         is $response.code, 403, 'status is 403';
         is $response.content, 'Forbidden', 'content is Forbidden';
     };
@@ -67,7 +67,7 @@ subtest {
     test-p6wapi $app-secure, -> $c {
         # TODO More iterations here segfaults in moar 2017.03-128-gc9ab59c
         for 1..10 -> $i {
-            my $response = $c.request(GET '/file.t' ~ ("/" x $i));
+            my $response = await $c.request(GET '/file.t' ~ ("/" x $i));
             # dd $response;
             is $response.code, 404, 'status is 404';
             is $response.content, 'Not Found', 'content is Not Found';
