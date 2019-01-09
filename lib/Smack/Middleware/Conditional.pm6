@@ -1,17 +1,23 @@
-unit class Smack::Middleware::Conditional
-does Smack::Middleware;
+use Smack::Middleware;
 
+unit class Smack::Middleware::Conditional is Smack::Middleware;
 use v6;
 
-has &.condition;
-has $.middleware;
-has &.builder;
+has Mu $.condition is required;
+has &!middleware;
+has &.builder is required;
 
-method prepare-app() {
-    $.middleware = &.builder.(&.app);
+method configure(%config) {
+    # Configure the app first
+    callsame();
+
+    # Then setup and configure the middleware
+    &!middleware = &.builder.(&.app);
+    &!middleware = &!middleware.(%config)
+        if &!middleware.returns ~~ Callable;
 }
 
 method call(%env) {
-    my &app = &.condition.(%env) ?? &.middleware !! &.app;
-    return app(%env);
+    my &app = %env ~~ $.condition ?? &!middleware !! &.app;
+    app(%env);
 }

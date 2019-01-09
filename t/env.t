@@ -3,17 +3,17 @@
 use v6;
 
 use Test;
-use lib 't/lib';
-use Smack::Test;
+use Smack::Client::Request::Common;
+use Smack::Test::Smackup;
 
 my @tests =
     -> $c, $u {
-        my $response = $c.get($u);
-        ok $response.success, 'request is ok';
+        my $response = await $c.request(GET($u));
+        ok $response.is-success, 'request is ok';
     },
     ;
 
-my $test-server = Smack::Test.new(:app<config-env.p6w>, :@tests);
+my $test-server = Smack::Test::Smackup.new(:app<config-env.p6w>, :@tests);
 $test-server.run;
 
 $test-server.treat-err-as-tap;

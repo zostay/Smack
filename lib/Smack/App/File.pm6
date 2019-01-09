@@ -1,56 +1,85 @@
-unit class File does Smack::Component;
+use Smack::Component;
+
+unit class Smack::App::File does Smack::Component;
 
 use v6;
 
 use Smack::Date;
+use Smack::Exception;
 use Smack::MIME;
 
 has IO::Path $.root;
 has IO::Path $.file;
-has $.content-type;
-has $.encoding;
-has $.bytes-at-a-time = 8192;
+has Str $.content-type;
+has Str $.encoding;
+has UInt $.chunk-size = 8192;
+
+submethod TWEAK() {
+    die "either root or file must be defined, but not both"
+        unless $!root.defined ^^ $!file.defined;
+}
+
+method configure(%env) { }
 
 method should-handle($file) { $file.f }
 
 method call(%env) {
     start {
-        my ($file, $path-info) = $.file // self.locate-file(%env);
-        return $file if $file ~~ Positional;
+        my $response;
+        try {
+            my ($file, $path-info) = $.file // self.locate-file(%env);
 
-        if $path-info {
-            %env<smack.file.SCRIPT_NAME> = %env<SCRIPT_NAME> ~ %env<PATH_INFO>;
-            %env<smack.file.SCRIPT_NAME>.=subst(/$path-info$/, '');
-            %env<smack.file.PATH_INFO> = $path-info;
-        }
-        else {
-            %env<smack.file.SCRIPT_NAME> = %env<SCRIPT_NAME> ~ %env<PATH_INFO>;
-            %env<smack.file.PATH_INFO> = '';
+            CATCH {
+                when (X::Smack::Exception) {
+                    $response = .response;
+                }
+            }
+
+            if $path-info {
+                %env<smack.file.SCRIPT_NAME> = %env<SCRIPT_NAME> ~ %env<PATH_INFO>;
+                %env<smack.file.SCRIPT_NAME>.=subst(/$path-info$/, '');
+                %env<smack.file.PATH_INFO> = $path-info;
+            }
+            else {
+                %env<smack.file.SCRIPT_NAME> = (%env<SCRIPT_NAME>//'') ~ (%env<PATH_INFO>//'');
+                %env<smack.file.PATH_INFO> = '';
+            }
+
+            $response = self.serve-path(%env, $file);
         }
 
-        self.serve-path(%env, $file);
+        # dd $response;
+        $response;
     }
 }
 
 method locate-file(%env) {
     my $path = %env<PATH_INFO> // '';
+    # dd $path;
 
-    return self.bad-request if $path ~~ /\0/;
+    die X::Smack::Exception::BadRequest.new if $path ~~ /\0/;
 
-    my $docroot = $.root // '.';
     my @path = $path.split(/<[ \\ \/ ]>/);
     if @path {
-        @path.shift if $path[0] eq '';
+        @path.shift if @path[0] eq '';
     }
     else {
         @path = '.';
     }
 
-    return self.forbidden if @path.first(/^\.{2,}$/);
+    die X::Smack::Exception::Forbidden.new if any(|@path) eq '..';
 
     my ($file, @path-info);
     while @path {
-        my $try = $docroot.child(@path);
+        my $try = ($.root, |@path).reduce: -> $p, $c {
+            if $p.d {
+                $p.add($c)
+            }
+            else {
+                die X::Smack::Exception::NotFound.new;
+            }
+        }
+
         if self.should-handle($try) {
             $file = $try;
             last;
@@ -61,15 +90,15 @@ method locate-file(%env) {
         @path-info.unshift: @path.pop;
     }
 
-    return self.not-found unless $file;
-    return self.forbidden unless $file.r;
+    die X::Smack::Exception::NotFound.new unless $file;
+    die X::Smack::Exception::Forbidden.new unless $file.r;
 
     $file, join("/", "", |@path-info);
 }
 
 method allow-path-info { False }
 
-method serve-path(%env, $file) {
+method serve-path(%env, IO() $file) {
     my $content-type = $.content-type
                     // Smack::MIME.mime-type($file)
                     // 'text/plain';
@@ -78,47 +107,21 @@ method serve-path(%env, $file) {
         $content-type = $content-type.($file);
     }
 
-    if $content-type ~~ rx{^text/} {
-        $content-type ~= '; charset' ~ ($.encoding // 'utf-8');
+    if $content-type.starts-with('text/') {
+        $content-type ~= '; charset=' ~ ($.encoding // 'utf-8');
     }
 
-    my $fh = $file.open(:r) or return self.forbidden;
+    my $fh = $file.open(:r) or die X::Smack::Exception::Forbidden.new;
 
     200, [
         Content-Type   => $content-type,
         Content-Length => $file.s,
-        Last-Modified  => time2str($file.modified),
+        Last-Modified  => time2str($file.modified.DateTime),
     ],
     Supply.on-demand(-> $s {
-        $s.emit($fh.read($.bytes-at-a-time))
+        $s.emit($fh.read($.chunk-size))
             until $fh.eof;
         $s.done;
     });
 }
 
-method forbidden() {
-    403,
-    [
-        Content-Type   => 'text/plain',
-        Content-Length => 9,
-    ],
-    [ 'Forbidden' ]
-}
-
-method bad-request {
-    400,
-    [
-        Content-Type   => 'text/plain',
-        Content-Length => 11,
-    ],
-    [ 'Bad Request' ]
-}
-
-method not-found {
-    404,
-    [
-        Content-Type   => 'text/plain',
-        Content-Length => 9,
-    ],
-    [ 'Not Found' ]
-}

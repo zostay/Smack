@@ -7,12 +7,14 @@
         "Smack::Request": "lib/Smack/Request.pm6"
     },
     "depends" : [
+        "Apache::LogFormat::Compiler",
         "DateTime::Format",
+        "Digest::MD5",
         "Hash::MultiValue",
-        "HTTP::Client",
+        "HTTP::UserAgent",
         "HTTP::Easy",
         "HTTP::Headers",
-        "HTTP::Parser",
+        "HTTP::Supply",
         "HTTP::Status",
         "URI::Encode"
     ],

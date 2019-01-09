@@ -1,20 +1,25 @@
-unit role Smack::Component is Callable;
+unit role Smack::Component;
 
 use v6;
 
-method prepare-app() { }
+method configure(%config) { }
 
-method CALL-ME(%env) { self.call(%env) }
+method call(%env) { }
 
-# the to-app method should be is cached
+# the to-app method is cached
 has $!app;
 method to-app() {
+    my $self = self;
     return $!app if $!app;
-    self.prepare-app;
-    $!app = sub (%env) { self.call(%env) }
+    $!app = sub (%config --> Callable) {
+        $self.configure(%config);
+        sub (%env) { $self.call(%env) };
+    }
 }
 
 # This only works correctly because to-app is cached
 method wrap(&middleware) {
     self.to-app.wrap(&middleware);
 }
+
+method Callable() returns Callable { self.to-app }

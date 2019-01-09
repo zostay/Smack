@@ -23,8 +23,9 @@ sub request-headers(%env) is export {
 
 sub request-encoding(
     Str :$charset,
-    %env,
-    Str:D :$fallback = 'ISO-8859-1') is export {
+    :%env,
+    Str:D :$fallback = 'ISO-8859-1',
+) is export {
 
     $charset
         // request-headers(:%env).Content-Type.charset
@@ -52,21 +53,118 @@ sub response-encoding(
         // $fallback
 }
 
-sub stringify-encode($the-stuff,
+our sub header-remove(@h, $remove) {
+    @h .= grep(*.key ne $remove)
+}
+
+our sub header-set(@h, *@headers, *%headers) {
+    for flat @headers, %headers -> $p {
+        my ($k, $v) = $p.kv;
+
+        my @i = @h.grep({ .key eq $k }, :k);
+        if @i {
+            # Replace first header value with this
+            my $i = shift @i;
+            @h[$i] = $k => $v;
+
+            # Delete the rest
+            @h[ @i ] :delete;
+            @h .= grep(Pair);
+        }
+
+        else {
+            # No existing header value, add it
+            push @h, $k => $v;
+        }
+    }
+}
+
+proto unpack-response(|) is export { * }
+
+multi unpack-response(@res (Int() $status, @headers, Supply() $entity), &response-handler) {
+    response-handler($status, @headers, $entity);
+}
+
+multi unpack-response(Promise:D $p, &response-handler) {
+    my $res = await $p;
+    unpack-response($res, &response-handler);
+}
+
+=begin pod
+
+=head2 sub infix:<then-with-response>
+
+    sub infix:<then-with-response> ($res, &callback --> Promise:D)
+
+This operator can be used by middleware as a shorthand to perform common tasks. The promise, C<$res>, is a response from an P6WAPI application, either a Promise or the 3-element list. The given callback, C<&callback>, will be called with the 3-element list form, similar to this:
+
+    sub callback(Int:D $code, @headers, Supply:D $entity)
+
+The result of the callback will determine what is done next.
+
+=item C<Nil>. If an undefined value is returned (such as Nil), then the response is returned as it was passed to the callback without any change.
+
+=item C<Supply>. If the value returned is a supply, the entity is replaced int eh response, but the status code and headers are returned as they were given to the callback with no changes.
+
+=item I<Anything else>. Anything else will be treated as a replacement response. This should probably be a Promise, but any acceptable P6WAPI response should be possible.
+
+=end pod
+
+sub infix:<then-with-response> (Promise:D $p, &c --> Promise:D) is export {
+    $p.then: -> $then {
+        with unpack-response($then, &c) -> $r {
+            when Supply {
+                my ($s, $h) = |$then.result;
+                $s, $h, $r
+            }
+            default { $r }
+        }
+        else {
+            $then.result
+        }
+    }
+}
+
+multi stringify-encode(Blob $the-stuff,
+    :%env, :$headers, Str :$charset) returns Blob is export {
+    $the-stuff
+}
+
+multi stringify-encode(
+    Str:D() $the-stuff,
     :%env,
     :$headers,
-    Str :$charset) is export{
+    Str :$charset,
+) returns Blob is export {
+    my $cs = response-encoding(:$charset, :%env, :$headers);
+    $the-stuff.encode($cs);
+}
 
-    my $cs = response-encoding(:$charset, :%env, :$headers)
-    given $the-stuff {
-        when Blob     { $the-stuff }
-        when .defined { $the-stuff.Str.encode($cs) }
-        default       { ''.encode($cs) }
-    }
+multi stringify-encode(
+    $the-stuff,
+    :%env,
+    :$headers,
+    Str :$charset,
+) returns Blob is export {
+    my $cs = response-encoding(:$charset, :%env, :$headers);
+    ''.encode($cs);
 }
 
 sub status-with-no-entity-body(Int(Any) $status) is export returns Bool:D {
     return $status < 200
         || $status == 204
         || $status == 304;
+}
+
+sub encode-html(Str() $str) returns Str is export {
+    $str.trans(
+        [ '&',     '>',    '<',    '"',      "'"     ] =>
+        [ '&amp;', '&gt;', '&lt;', '&quot;', '&#39;' ]
+    );
+}
+
+sub content-length(%env, Supply() $body) returns Supply is export {
+    $body.grep(Blob | Str)
+         .map({ stringify-encode($_, :%env).bytes })
+         .reduce(&infix:<+>);
 }

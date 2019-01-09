@@ -1,9 +1,9 @@
-unit class Smack::Request;
-
 use v6;
 
-use Hash::MultiValue;
+unit class Smack::Request;
+
 use HTTP::Headers;
+use Hash::MultiValue;
 use URI::Encode;
 
 has %.env;
@@ -12,25 +12,24 @@ method new(%env) {
     return self.bless(:%env);
 }
 
-method address      is rw { %!env<REMOTE_ADDR> }
-method remote-host  is rw { %!env<REMOTE_HOST> }
-method protocol     is rw { %!env<SERVER_PROTOCOL> }
-method method       is rw { %!env<REQUEST_METHOD> }
-method port         is rw { %!env<SERVER_PORT>.Int }
-method user         is rw { %!env<REMOTE_USER> }
-method request-uri  is rw { %!env<REQUEST_URI> }
-method path-info    is rw { %!env<PATH_INFO> }
+method protocol     is rw { return-rw %!env<SERVER_PROTOCOL> }
+method method       is rw { return-rw %!env<REQUEST_METHOD> }
+method host         is rw { return-rw %!env<SERVER_NAME> }
+method port         is rw { return-rw %!env<SERVER_PORT> }
+method user         is rw { return-rw %!env<REMOTE_USER> }
+method request-uri  is rw { return-rw %!env<REQUEST_URI> }
+method path-info    is rw { return-rw %!env<PATH_INFO> }
 method path               { %!env<PATH_INFO> // '/' }
-method query-string is rw { %!env<QUERY_STRING> }
-method script-name  is rw { %!env<SCRIPT_NAME> }
-method scheme       is rw { %!env<psgi.url_scheme> }
+method query-string is rw { return-rw %!env<QUERY_STRING> }
+method script-name  is rw { return-rw %!env<SCRIPT_NAME> }
+method scheme       is rw { return-rw %!env<p6w.url_scheme> }
 method secure             { self.scheme eq 'https' }
-method body         is rw { %!env<psgi.input> }
-method input        is rw { %!env<psgi.input> }
+method body         is rw { return-rw %!env<p6w.input> }
+method input        is rw { return-rw %!env<p6w.input> }
 
-method session         is rw { %!env<psgix.session> }
-method session_options is rw { %!env<psgix.session.options> }
-method logger          is rw { %!env<psgix.logger> }
+method session         is rw { return-rw %!env<p6wx.session> }
+method session_options is rw { return-rw %!env<p6wx.session.options> }
+method logger          is rw { return-rw %!env<p6wx.logger> }
 
 method cookies returns Hash {
     return {} unless self.Cookie;
@@ -81,7 +80,7 @@ method raw-content returns Blob {
     if $fh.defined && $length.defined && $length.Int > 0 {
         { # WHY?
             LEAVE {
-                $fh.seek(0) if %!env<psgix.input.buffered>;
+                $fh.seek(0) if %!env<p6wx.input.buffered>;
             }
 
             $fh.read($length.Int);

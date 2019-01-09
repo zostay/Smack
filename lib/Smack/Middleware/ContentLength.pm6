@@ -1,27 +1,25 @@
+use Smack::Middleware;
+
 unit class Smack::Middleware::ContentLength
-does Smack::Middleware;
+is Smack::Middleware;
+
+use Smack::Util;
 
 method call(%env) {
-    &.app.(%env).then(-> $p {
-        my ($s, @h, Supply(All) $body) = $p.result;
-
-        my $headers = response-headers(:@headers, :%env);
-        my $charset = response-encoding(:@headers, :%env);
+    callsame() then-with-response -> $s, @h, $entity {
+        my $headers = response-headers(@h, :%env);
 
         if !status-with-no-entity-body($s)
             && !$headers.Content-Length
             && !$headers.Transfer-Encoding
-            && !$body.live {
+            && !$entity.live {
 
-            my @list;
-            my $content-length = 0;
-            $body.tap: -> $v {
-                push @list, my $buf = stringify-encode($v, :$headers, :%env);
-                $content-length += $buf.bytes;
-            };
-            $body.wait;
+            my $cl = content-length(%env, $entity).Promise;
+            my $content-length = await $cl;
 
-            $s, @h, Supply.from-list(@list)
+            push @h, 'Content-Length' => $content-length;
         }
-    });
+
+        $s, @h, $entity
+    }
 }

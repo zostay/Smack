@@ -11,6 +11,7 @@ sub MAIN(Int :$port, Str :$app) {
     my $psgi = $app.IO.slurp;
     my &app  = $psgi.EVAL;
 
+    $server.start;
     say "Starting on http://localhost:$port/...";
     $server.run(&app);
 }

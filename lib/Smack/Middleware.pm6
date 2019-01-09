@@ -1,13 +1,20 @@
+use v6;
 use Smack::Component;
 
-unit role Smack::Middleware is Smack::Component;
+unit class Smack::Middleware is Smack::Component;
 
-use v6;
+has &.app;
 
-has $.app;
+method configure(%config) {
+    &!app = &.app.(%config) if &!app.returns ~~ Callable;
+}
+
+method call(%env) {
+    &.app.(%env);
+}
 
 # This is sort of equivalent to Plack::Middleware::wrap.
-method wrap-that(&app, *@_, *%_) {
-    my $mw = self.new(:&app, |@_, |%_);
+method wrap-that(Smack::Middleware:U: &app, |args) {
+    my $mw = self.new(:&app, |args);
     $mw.to-app;
 }

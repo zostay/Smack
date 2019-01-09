@@ -25,7 +25,7 @@ method finalize() {
     die X::Smack::Response::MissingStatus.new
         unless $!status.defined;
 
-    my @headers = $!headers.for-PSGI;
+    my @headers = $!headers.for-P6WAPI;
 
     return [
         $!status,

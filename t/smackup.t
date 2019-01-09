@@ -3,27 +3,26 @@
 use v6;
 
 use Test;
-use lib 't/lib';
 use HTTP::Headers;
-use Smack::Test;
+use Smack::Test::Smackup;
+use Smack::Client::Request::Common;
 
 my @tests =
     -> $c, $u {
-        my $response = $c.get($u);
-        ok($response.success, 'successfully made a request');
+        my $response = await $c.request(GET($u));
+        ok($response.is-success, 'successfully made a request');
 
-        is($response.status, 200, 'returned 200');
-        my $headers = HTTP::Headers.new: $response.headers, :quiet;
+        is($response.code, 200, 'returned 200');
 
-        is $headers.elems, 1, 'only one header set';
-        is $headers.Content-Type, 'text/plain', 'Content-Type: text/plain';
+        is $response.headers.elems, 1, 'only one header set';
+        is $response.Content-Type, 'text/plain', 'Content-Type: text/plain';
 
         is $response.content, 'Hello World', 'Content is Hello World';
     };
 
 for <hello hello-supply hello-psgi> -> $name {
     my $app = $name ~ ".p6w";
-    my $test-server = Smack::Test.new(:$app, :@tests);
+    my $test-server = Smack::Test::Smackup.new(:$app, :@tests);
     $test-server.run;
 }
 
