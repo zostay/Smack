@@ -1,7 +1,7 @@
 #!/usr/bin/env perl6
 use v6;
 
-use HTTP::Request::Common;
+use Smack::Client::Request::Common;
 use Smack::Middleware::AccessLog;
 use Smack::Test;
 use Test;
@@ -39,10 +39,10 @@ subtest {
             X-Forwarded-For => '192.0.2.1',
         );
 
-        my $res = $c.request($req);
+        my $res = await $c.request($req);
         ok $res.is-success, 'successful request';
         is $res.code, 200, 'status code is 200';
-        is $res.decoded-content, 'OK', 'content is as expected';
+        is $res.content, 'OK', 'content is as expected';
 
         my $now = DateTime.now;
         #is $log, "$*PID example.com 80 192.0.2.1 text/plain [$now.month() $now.year()] example.com";
