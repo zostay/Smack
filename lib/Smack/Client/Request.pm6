@@ -35,7 +35,9 @@ multi method to-p6wapi(Smack::Client::Request:D: --> Hash) {
 }
 
 multi method to-p6wapi(Smack::Client::Request:D: %config --> Hash) {
-    my %env = |%config, |$.headers.for-P6WAPI,
+    my %env = |%config,
+        HTTP_HOST           => $.host,
+        |$.headers.for-P6WAPI,
         SERVER_PORT         => $.port,
         SERVER_NAME         => $.host,
         SCRIPT_NAME         => '',
