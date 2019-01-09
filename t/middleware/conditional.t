@@ -1,7 +1,7 @@
 #!/usr/bin/env perl6
 use v6;
 
-use HTTP::Request::Common;
+use Smack::Client::Request::Common;
 use Smack::Middleware::Conditional;
 use Smack::Test;
 use Smack::Util;
@@ -34,13 +34,13 @@ my &app = Smack::Middleware::Conditional.new(
 
 test-p6wapi &app, -> $c {
     subtest {
-        my $res = $c.request(GET '/', X-AllCaps => 'YES-PLEASE');
-        is $res.decoded-content, 'HELLO', 'response is modified';
+        my $res = await $c.request(GET '/', X-AllCaps => 'YES-PLEASE');
+        is $res.content, 'HELLO', 'response is modified';
     }, 'condition active';
 
     subtest {
-        my $res = $c.request(GET '/', X-AllCaps => 'no-thanks');
-        is $res.decoded-content, 'Hello', 'response is original';
+        my $res = await $c.request(GET '/', X-AllCaps => 'no-thanks');
+        is $res.content, 'Hello', 'response is original';
     }, 'condition inactive';
 };
 
