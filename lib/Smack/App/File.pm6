@@ -41,7 +41,7 @@ method call(%env) {
                 %env<smack.file.PATH_INFO> = $path-info;
             }
             else {
-                %env<smack.file.SCRIPT_NAME> = %env<SCRIPT_NAME> ~ %env<PATH_INFO>;
+                %env<smack.file.SCRIPT_NAME> = (%env<SCRIPT_NAME>//'') ~ (%env<PATH_INFO>//'');
                 %env<smack.file.PATH_INFO> = '';
             }
 
@@ -73,7 +73,7 @@ method locate-file(%env) {
     while @path {
         my $try = ($.root, |@path).reduce: -> $p, $c {
             if $p.d {
-                $p.child($c)
+                $p.add($c)
             }
             else {
                 die X::Smack::Exception::NotFound.new;
@@ -89,13 +89,6 @@ method locate-file(%env) {
         }
         @path-info.unshift: @path.pop;
     }
-
-    # TODO Add when .child becomes secure with IO grant
-    # CATCH {
-    #     when (X::IO::NotAChild) {
-    #         die X::Smack::Exception::Forbidden.new;
-    #     }
-    # }
 
     die X::Smack::Exception::NotFound.new unless $file;
     die X::Smack::Exception::Forbidden.new unless $file.r;

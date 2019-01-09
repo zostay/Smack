@@ -5,11 +5,14 @@ use Smack::Client::Message;
 unit class Smack::Client::Response is Smack::Client::Message;
 
 use HTTP::Status;
+use Smack::Client::Request;
 
 my subset StatusCode of UInt where 599 >= * >= 100;
 
 has StatusCode $.code is rw is required;
 has Str $.message is rw is required;
+
+has Smack::Client::Request $.request is rw;
 
 method is-success(Smack::Client::Response:D: --> Bool:D) { 299 >= $!code >= 200 }
 
@@ -19,7 +22,11 @@ method set-code(Smack::Client::Response:D: StatusCode $new-code --> Str:D) {
     $!message = $new-message; # return the message set
 }
 
-method from-p6wapi(Smack::Client::Response:U: Int $code, @headers, Supply $body) {
+multi method from-p6wapi(Smack::Client::Response:U: Promise $res) {
+    self.from-p6wapi: |(await $res);
+}
+
+multi method from-p6wapi(Smack::Client::Response:U: Int() $code, @headers, Supply() $body is copy) {
     # This is how this information is provided from HTTP::Supply
     my $message = do with @headers.first(*.key eq '::server-reason-phrase') { .value } else { get_http_status_msg($code) };
     my $protocol = do with @headers.first(*.key eq '::server-protocol') { .value } else { 'HTTP/1.1' };

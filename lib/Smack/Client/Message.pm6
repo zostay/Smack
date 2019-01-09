@@ -28,18 +28,33 @@ method encoding(Smack::Client::Message:D: --> Str:D) {
 has Str $!_content;
 
 #| Grab the content all-or-nothing style.
-method content(Smack::Client::Message:D: --> Str) {
-    #$!_content //= await $.body.reduce(*~*).map(*.decode($.encoding)) // '';
-    with $!_content { $!_content }
-    else {
-        $!_content = '';
-        react {
-            whenever $.body {
-                .note;
-                $!_content ~= .decode($.encoding);
-            }
+method content(Smack::Client::Message:D: --> Str:D) {
+    $!_content //= await $.body.map(-> $chunk {
+        given $chunk {
+            when Blob { .decode($.encoding) }
+            default   { ~$chunk }
         }
-        $!_content;
+    }).reduce(&infix:<~>) // '';
+}
+
+#| Provide the body as a stream of bytes.
+method stream(Smack::Client::Message:D: --> Supply:D) {
+    # If the body has already been slurped up into content
+    if $!_content {
+        supply {
+            emit $.content.encode($.encoding);
+        }
+    }
+
+    # Otherwise, we assume $.body is ready to be slurped up BUT might contain
+    # non-bytes, so let's make a body that only emits bytes.
+    else {
+        $.body.map(-> $chunk {
+            given $chunk {
+                when Blob { $chunk }
+                default { (~$chunk).encode($.encoding) }
+            }
+        });
     }
 }
 

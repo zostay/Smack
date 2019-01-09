@@ -1,6 +1,16 @@
 use v6;
 
-use HTTP::Request;
+use Smack::Client::Request;
+
+my constant DEFAULT-CONFIG =
+    'p6w.version'          => v0.7.Draft,
+    'p6w.errors'           => Supplier.new,
+    'p6w.multithread'      => False,
+    'p6w.multiprocess'     => False,
+    'p6w.run-once'         => True,
+    'p6w.protocol.support' => set('request-response'),
+    'p6w.protocol.enabled' => SetHash.new('request-response'),
+    ;
 
 class Smack::Test { ... }
 
@@ -9,15 +19,7 @@ class Smack::TestFactory {
     our $DEFAULT_IMPL_NAME = %*ENV<SMACK_TEST_IMPL> // "MockHTTP";
 
     has $.class;
-    has %.config =
-        'p6w.version'          => v0.7.Draft,
-        'p6w.errors'           => Supplier.new,
-        'p6w.multithread'      => False,
-        'p6w.multiprocess'     => False,
-        'p6w.run-once'         => True,
-        'p6w.protocol.support' => set('request-response'),
-        'p6w.protocol.enabled' => SetHash.new('request-response'),
-        ;
+    has %.config = DEFAULT-CONFIG;
 
     submethod BUILD(:$name = $DEFAULT_IMPL_NAME, :$!class) {
         without $!class {
@@ -27,7 +29,7 @@ class Smack::TestFactory {
         }
     }
 
-    method create(&app, *%args) returns Smack::Test:D {
+    method create(&app, *%args --> Smack::Test:D) {
         $.class.new(:&app, |%args);
     }
 
@@ -37,12 +39,12 @@ class Smack::Test {
     our $DEFAULT_TEST_FACTORY;
 
     has &.app;
-    has %.config;
+    has %.config = DEFAULT-CONFIG;
 
     method run-config(:&app = &!app, :%config = %!config) {
         if &app.returns ~~ Callable {
             # cache the result so we only configure once
-            &!app := app(%config);
+            &!app = app(%config);
             &!app;
         }
         else {
@@ -55,11 +57,11 @@ class Smack::Test {
         the-app(%env);
     }
 
-    multi method request(HTTP::Request $request) {
+    multi method request(Smack::Client::Request $request) {
         self.request($request, %.config);
     }
 
-    multi method request(HTTP::Request $request, %config) { ... }
+    multi method request(Smack::Client::Request $request, %config) { ... }
 
     my sub test-factory { $*TEST_FACTORY // ($DEFAULT_TEST_FACTORY //= Smack::TestFactory.new) }
 

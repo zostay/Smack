@@ -1,4 +1,4 @@
-unit class Smack::Component;
+unit role Smack::Component;
 
 use v6;
 
@@ -11,7 +11,7 @@ has $!app;
 method to-app() {
     my $self = self;
     return $!app if $!app;
-    $!app = sub (%config) returns Callable {
+    $!app = sub (%config --> Callable) {
         $self.configure(%config);
         sub (%env) { $self.call(%env) };
     }
