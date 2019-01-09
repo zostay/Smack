@@ -1,7 +1,7 @@
 #!/usr/bin/env perl6
 use v6;
 
-use HTTP::Request::Common;
+use Smack::Client::Request::Common;
 use Smack::Middleware::ContentLength;
 use Smack::Test;
 use Test;
@@ -46,10 +46,10 @@ for @tests -> %test {
     );
 
     test-p6wapi $handler, -> $c {
-        my $res = $c.request(GET '/');
-        diag "ERROR: $res.decoded-content()" if is-error($res.code);
+        my $res = await $c.request(GET '/');
+        diag "ERROR: $res.content()" if is-error($res.code);
         for @(%test<headers>) {
-            is $res.header.field(.key), .value, "header {.key} is as expected";
+            is $res.header(.key), .value, "header {.key} is as expected";
         }
     };
 }
