@@ -1,7 +1,7 @@
 #!/usr/bin/env perl6
 use v6;
 
-use HTTP::Request::Common;
+use Smack::Client::Request::Common;
 use Smack::App::Directory;
 use Smack::Test;
 use Test;
@@ -11,7 +11,7 @@ my $handler = Smack::App::Directory.new(root => 'share'.IO);
 test-p6wapi $handler, -> $c {
     my $res = $c.request(GET '/');
     is $res.code, 200, 'getting #foo is 200';
-    like $res.decoded-content, rx{"/%23foo"}, 'found #foo';
+    like $res.content, rx{"/%23foo"}, 'found #foo';
 
     $res = $c.request(GET '/..');
     is $res.code, 403, 'getting root parent is 403';
@@ -24,7 +24,7 @@ test-p6wapi $handler, -> $c {
 
     $res = $c.request(GET '/');
     is $res.code, 200, 'getting index is 200';
-    like $res.decoded-content, rx{"Index of /"}, 'indexing is indexing';
+    like $res.content, rx{"Index of /"}, 'indexing is indexing';
 
     try {
         mkdir "share/stuff..";
@@ -35,7 +35,7 @@ test-p6wapi $handler, -> $c {
 
         $res = $c.request(GET '/stuff../Hello.txt');
         is $res.code, 200, 'able to get to Hello.txt';
-        is $res.decoded-content, "Hello\n", 'file contains expected content';
+        is $res.content, "Hello\n", 'file contains expected content';
     }
 };
 

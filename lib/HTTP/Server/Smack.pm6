@@ -2,7 +2,7 @@ use v6;
 
 unit class HTTP::Server::Smack;
 
-use URI::Encode;
+use URI::Escape;
 use DateTime::Format::RFC2822;
 use HTTP::Headers;
 use HTTP::Supply::Request;
@@ -97,7 +97,7 @@ method accept-loop(&app) {
                     %env = |%env, |%request;
 
                     my $uri = Smack::URI.new(%env<REQUEST_URI>);
-                    my $path         = ~$uri.path;
+                    my $path         = uri-unescape(~$uri.path);
                     my $query-string = ~$uri.query;
 
                     %env<PATH_INFO>        = $path;

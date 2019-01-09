@@ -6,6 +6,7 @@ unit class Smack::Client::Request is Smack::Client::Message;
 
 use Smack::URI;
 use HTTP::Headers :standard-names;
+use URI::Escape;
 
 has Smack::URI $.uri is rw is required;
 has Str $.method is rw is required;
@@ -41,7 +42,7 @@ multi method to-p6wapi(Smack::Client::Request:D: %config --> Hash) {
         'p6w.url-scheme'    => $.uri.scheme,
         'p6w.body.encoding' => 'UTF-8',
         'p6w.protocol'      => 'request-response',
-        PATH_INFO           => ~$.uri.path,
+        PATH_INFO           => uri-unescape(~$.uri.path),
         QUERY_STRING        => ~$.uri.query // '',
         REQUEST_URI         => ~$.uri,
         ;

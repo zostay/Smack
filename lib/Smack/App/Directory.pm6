@@ -64,7 +64,7 @@ method redirect-to-directory(%env) {
 }
 
 method serve-path(%env, $dir) {
-    nextsame if $dir.f; # go back up ::File for files
+    return callsame if $dir.f; # go back up ::File for files
 
     my $dir-url = %env<SCRIPT_NAME> ~ %env<PATH_INFO>;
     return self.redirect-to-directory(%env)
