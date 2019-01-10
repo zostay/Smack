@@ -29,12 +29,12 @@ has Str $!_content;
 
 #| Grab the content all-or-nothing style.
 method content(Smack::Client::Message:D: --> Str:D) {
-    $!_content //= await $.body.map(-> $chunk {
+    $!_content //= (await $.body.map(-> $chunk {
         given $chunk {
             when Blob { .decode($.encoding) }
             default   { ~$chunk }
         }
-    }).reduce(&infix:<~>) // '';
+    }).reduce(&infix:<~>)) // '';
 }
 
 #| Provide the body as a stream of bytes.

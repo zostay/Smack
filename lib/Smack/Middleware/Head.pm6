@@ -1,11 +1,13 @@
-unit class Smack::Middleware::Head
-does Smack::Middleware;
-
 use v6;
 
+use Smack::Middleware;
+
+unit class Smack::Middleware::Head is Smack::Middleware;
+
 method call(%env) {
-    $.app.(%env).then(-> $p {
+    $.app.(%env).then(sub ($p) {
         return $p unless %env<REQUEST_METHOD> eq 'HEAD';
-        $p.result[0,1], Supply.from-list([])
+        my $res = $p.result;
+        $res[0], $res[1], [];
     });
 }

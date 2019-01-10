@@ -20,11 +20,12 @@ multi method request(Smack::Client::Request $request, %config) {
         CATCH {
             default {
                 .note;
-                return Smack::Client::Response.from-p6wapi(start {
-                    500,
-                    [ Content-Type => 'text/plain' ],
-                    [ .message ~ .backtrace ]
-                });
+                .rethrow;
+                # return Smack::Client::Response.from-p6wapi(start {
+                #     500,
+                #     [ Content-Type => 'text/plain' ],
+                #     [ .message ~ .backtrace ]
+                # });
             }
         }
 

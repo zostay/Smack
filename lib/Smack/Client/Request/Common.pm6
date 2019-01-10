@@ -13,6 +13,14 @@ my sub add-headers($req, @headers, %headers) {
     }
 }
 
+sub HEAD(Smack::URI:D() $uri, *@headers, *%headers) is export {
+    my $req = Smack::Client::Request.new(:method<HEAD>, :$uri);
+
+    add-headers($req, @headers, %headers);
+
+    $req;
+}
+
 sub GET(Smack::URI:D() $uri, *@headers, *%headers) is export {
     my $req = Smack::Client::Request.new(:method<GET>, :$uri);
 
