@@ -10,6 +10,7 @@ use Smack::Client::Request::Common;
 my @tests =
     -> $c, $u {
         my $response = await $c.request(GET($u));
+
         ok($response.is-success, 'successfully made a request');
 
         is($response.code, 200, 'returned 200');

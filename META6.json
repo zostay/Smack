@@ -15,8 +15,7 @@
         "HTTP::Easy",
         "HTTP::Headers",
         "HTTP::Supply",
-        "HTTP::Status",
-        "URI::Encode"
+        "HTTP::Status"
     ],
     "source-url" : "git://github.com/zostay/Smack.git"
 }

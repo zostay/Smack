@@ -4,7 +4,7 @@ unit class Smack::Request;
 
 use HTTP::Headers;
 use Hash::MultiValue;
-use URI::Encode;
+use URI::Escape;
 
 has %.env;
 
@@ -35,7 +35,7 @@ method cookies returns Hash {
     return {} unless self.Cookie;
 
     my @cookies = self.Cookie.Str.comb(/<-[ ; , ]>+/).grep(/'='/);
-    my %cookies = @cookies.map(*.trim.split('=', 2)).map({ uri_decode($_) });
+    my %cookies = @cookies.map(*.trim.split('=', 2)).map({ uri-unescape($_) });
     return %cookies;
 }
 
@@ -58,11 +58,11 @@ method !parse-urlencoded-string($qs) {
 
     my @qs = do for $qs.comb(/<-[ & ; ]>+/) {
         when / '=' / {
-            my ($key, $value) = .split(/ '=' /, 2).map({ uri_decode( .subst(/ '+' /, ' ', :g)) });
+            my ($key, $value) = .split(/ '=' /, 2).map({ uri-unescape( .subst(/ '+' /, ' ', :g)) });
             ~$key => ~$value
         }
         default {
-            uri_decode( .subst(/ '+' /, ' ', :g) ) => Str but True
+            uri-unescape( .subst(/ '+' /, ' ', :g) ) => Str but True
         }
     }
 
