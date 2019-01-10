@@ -1,7 +1,7 @@
+use v6;
+
 unit class Smack::Middleware::Chunked
 does Smack::Middleware;
-
-use v6;
 
 use HTTP::Headers;
 use Smack::Util;

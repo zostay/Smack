@@ -1,3 +1,5 @@
+use v6;
+
 unit class Smack::Runner;
 
 use Smack::Handler;

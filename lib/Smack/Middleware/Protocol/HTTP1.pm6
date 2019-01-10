@@ -1,3 +1,5 @@
+use v6;
+
 unit class Smack::Middleware::Protocol::HTTP1;
 
 use HTTP::Parser;

@@ -1,6 +1,6 @@
-unit class HTTP::Server::Smack::HTTP1x does HTTP::Server::Smack::Protocol;
-
 use v6;
+
+unit class HTTP::Server::Smack::HTTP1x does HTTP::Server::Smack::Protocol;
 
 constant CR = 0x0d;
 constant LF = 0x0a;

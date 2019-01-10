@@ -1,8 +1,9 @@
+use v6;
+
 use Smack::Middleware;
 
 unit class Smack::Middleware::ContentMD5
 is Smack::Middleware;
-use v6;
 
 use Digest::MD5;
 use Smack::Util;

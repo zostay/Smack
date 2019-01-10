@@ -1,3 +1,5 @@
+use v6;
+
 unit module HTTP::Server::Smack::Util;
 
 my class X::HTTP::Server::Smack::BadHeader is Exception {

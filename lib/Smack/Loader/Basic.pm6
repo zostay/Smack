@@ -1,3 +1,5 @@
+use v6;
+
 use Smack::Loader;
 
 unit class Smack::Loader::Basic

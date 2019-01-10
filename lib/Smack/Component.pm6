@@ -1,6 +1,6 @@
-unit role Smack::Component;
-
 use v6;
+
+unit role Smack::Component;
 
 method configure(%config) { }
 

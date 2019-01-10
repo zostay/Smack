@@ -1,6 +1,6 @@
-unit class Smack::Response;
-
 use v6;
+
+unit class Smack::Response;
 
 use HTTP::Headers;
 

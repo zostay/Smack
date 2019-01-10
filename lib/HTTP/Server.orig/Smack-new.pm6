@@ -1,3 +1,5 @@
+use v6;
+
 unit class HTTP::Server::Smack;
 
 use URI::Encode;

@@ -1,8 +1,8 @@
+use v6;
+
 use Smack::Component;
 
 unit class Smack::App::File does Smack::Component;
-
-use v6;
 
 use Smack::Date;
 use Smack::Exception;

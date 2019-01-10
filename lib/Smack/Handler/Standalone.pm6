@@ -1,3 +1,5 @@
+use v6;
+
 use Smack::Handler;
 
 unit class Smack::Handler::Standalone

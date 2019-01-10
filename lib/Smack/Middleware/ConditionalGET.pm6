@@ -1,7 +1,8 @@
+use v6;
+
 use Smack::Middleware;
 
 unit class Smack::Middleware::ConditionalGET is Smack::Middleware;
-use v6;
 
 use Smack::Util;
 

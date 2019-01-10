@@ -1,4 +1,5 @@
 use v6;
+
 use Smack::Test;
 
 unit class Smack::Test::MockHTTP is Smack::Test;

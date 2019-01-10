@@ -1,3 +1,5 @@
+use v6;
+
 unit role Smack::Loader;
 
 use Smack::Handler;

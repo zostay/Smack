@@ -1,7 +1,8 @@
+use v6;
+
 use Smack::Middleware;
 
 unit class Smack::Middleware::AccessLog is Smack::Middleware;
-use v6;
 
 use Smack::Util;
 use Apache::LogFormat::Compiler;

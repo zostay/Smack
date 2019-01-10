@@ -1,5 +1,6 @@
-unit module HTTP::Message::P6WAPI;
 use v6;
+
+unit module HTTP::Message::P6WAPI;
 
 use HTTP::Request;
 use HTTP::Response;

@@ -1,3 +1,5 @@
+use v6;
+
 unit module Smack::Date;
 
 use DateTime::Format;

@@ -1,8 +1,8 @@
+use v6;
+
 use Smack::App::File;
 
 unit class Smack::App::Directory is Smack::App::File;
-
-use v6;
 
 use Smack::Date;
 use Smack::Util;

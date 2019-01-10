@@ -1,3 +1,5 @@
+use v6;
+
 unit role Smack::Handler;
 
 has Int $.port;

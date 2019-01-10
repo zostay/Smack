@@ -1,4 +1,5 @@
 use v6;
+
 use Smack::Component;
 
 unit class Smack::Middleware is Smack::Component;

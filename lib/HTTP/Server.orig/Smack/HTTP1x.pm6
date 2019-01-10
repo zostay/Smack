@@ -1,6 +1,6 @@
-unit class HTTP::Server::Smack::HTTP1x does HTTP::Server::Smack::Protocol;
-
 use v6;
+
+unit class HTTP::Server::Smack::HTTP1x does HTTP::Server::Smack::Protocol;
 
 use HTTP::Server::Smack::HTTP2;
 

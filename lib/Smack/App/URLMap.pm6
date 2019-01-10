@@ -1,8 +1,8 @@
+use v6;
+
 use Smack::Component;
 
 unit class Smack::App::URLMap is Smack::Component;
-
-use v6;
 
 has Bool $.debug = ?%*ENV<SMACK_URLMAP_DEBUG>;
 has @!mapping;

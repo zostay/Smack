@@ -1,8 +1,8 @@
+use v6;
+
 use Smack::Middleware;
 
 unit class Smack::Middleware::PSGI is Smack::Middleware;
-
-use v6;
 
 method call(%env) {
     my $encoding =

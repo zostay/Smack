@@ -1,4 +1,5 @@
 use v6;
+
 unit class Smack::URI;
 
 # FORKED from perl6-community-modules/uri using the zostay-mutators branch

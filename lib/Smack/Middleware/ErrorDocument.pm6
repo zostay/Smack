@@ -1,7 +1,7 @@
+use v6;
+
 unit class Smack::Middleware::ErrorDocument
 does Smack::Middleware;
-
-use v6;
 
 use HTTP::Status;
 use Smack::Util;

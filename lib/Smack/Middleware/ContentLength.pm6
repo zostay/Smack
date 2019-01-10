@@ -1,3 +1,5 @@
+use v6;
+
 use Smack::Middleware;
 
 unit class Smack::Middleware::ContentLength

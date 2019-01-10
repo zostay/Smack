@@ -1,6 +1,6 @@
-unit class Smack::MIME;
-
 use v6;
+
+unit class Smack::MIME;
 
 our %MIME-TYPES =
     ".3gp"     => "video/3gpp",
