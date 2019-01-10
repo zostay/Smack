@@ -184,9 +184,9 @@ method mime-type($file) {
     %MIME-TYPES{ $/<ext>.lc } // fallback($/<ext>.lc);
 }
 
-method add-type(*%pairs) {
-    for %pairs.kv -> $ext, $type {
-        %MIME-TYPES{ $ext } = $type;
+multi method add-type(*@pairs) {
+    for @pairs {
+        %MIME-TYPES{ .key } = .value;
     }
 }
 

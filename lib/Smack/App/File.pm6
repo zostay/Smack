@@ -10,7 +10,7 @@ use Smack::MIME;
 
 has IO::Path $.root;
 has IO::Path $.file;
-has Str $.content-type;
+has $.content-type;
 has Str $.encoding;
 has UInt $.chunk-size = 8192;
 
@@ -48,14 +48,12 @@ method call(%env) {
             $response = self.serve-path(%env, $file);
         }
 
-        # dd $response;
         $response;
     }
 }
 
 method locate-file(%env) {
     my $path = %env<PATH_INFO> // '';
-    # dd $path;
 
     die X::Smack::Exception::BadRequest.new if $path ~~ /\0/;
 
