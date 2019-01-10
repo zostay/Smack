@@ -29,3 +29,5 @@ test-p6wapi &app, -> $c {
     ok !$res.content;
     is $res.Content-Length, 11;
 }
+
+done-testing;
