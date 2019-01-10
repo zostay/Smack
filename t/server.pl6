@@ -13,5 +13,12 @@ sub MAIN(Int :$port, Str :$app) {
 
     $server.start;
     say "Starting on http://localhost:$port/...";
+
+    # Start a thread that will close the listener on QUIT/INT
+    signal(SIGINT | SIGQUIT).tap: {
+        $server.stop;
+        exit 0;
+    };
+
     $server.run(&app);
 }

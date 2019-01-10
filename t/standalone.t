@@ -27,8 +27,6 @@ for <hello hello-supply hello-psgi> -> $name {
         cmd => [ 't/server.pl6', '--port={port}', '--app=t/apps/{app}' ],
     );
     $test-server.run;
-
-    sleep 1;
 }
 
 done-testing;

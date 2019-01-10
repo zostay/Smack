@@ -15,6 +15,7 @@ has Int $.port;
 has Bool $.debug = False;
 
 has $!listener;
+has $!listener-tap;
 
 my sub _errors {
     my $errors = Supplier.new;
@@ -36,6 +37,10 @@ method start() {
     self.setup-listener;
 }
 
+method stop() {
+    self.shutdown-listener;
+}
+
 method run(&app is copy) {
     die "You must start the server before you can run it."
         unless $!listener;
@@ -48,9 +53,13 @@ method setup-listener {
     $!listener = IO::Socket::Async.listen($!host, $!port);
 }
 
+method shutdown-listener {
+    .close with $!listener-tap;
+}
+
 method accept-loop(&app) {
     react {
-        whenever $!listener -> $conn {
+        $!listener-tap = do whenever $!listener -> $conn {
             #note "[note] new client connection";
 
             my Promise $header-done-promise .= new;
