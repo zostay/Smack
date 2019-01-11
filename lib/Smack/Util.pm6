@@ -55,11 +55,11 @@ sub response-encoding(
         // $fallback
 }
 
-our sub header-remove(@h, $remove) {
+our sub header-remove(@h, $remove) is export {
     @h .= grep(*.key ne $remove)
 }
 
-our sub header-set(@h, *@headers, *%headers) {
+our sub header-set(@h, *@headers, *%headers) is export {
     for flat @headers, %headers -> $p {
         my ($k, $v) = $p.kv;
 
@@ -114,12 +114,12 @@ The result of the callback will determine what is done next.
 
 sub infix:<then-with-response> (Promise:D $p, &c --> Promise:D) is export {
     $p.then: -> $then {
-        with unpack-response($then, &c) -> $r {
+        with unpack-response($then, &c) {
             when Supply {
                 my ($s, $h) = |$then.result;
-                $s, $h, $r
+                $s, $h, $_
             }
-            default { $r }
+            default { $_ }
         }
         else {
             $then.result
