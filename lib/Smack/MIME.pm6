@@ -179,7 +179,7 @@ my &fallback = sub ($ext) { }
 method mime-type($file) {
     $file ~~ /$<ext> = [
         '.' <[ a..z A..Z 0..9 ]>+
-    ]/ or return Nil;
+    $]/ or return Nil;
 
     %MIME-TYPES{ $/<ext>.lc } // fallback($/<ext>.lc);
 }
