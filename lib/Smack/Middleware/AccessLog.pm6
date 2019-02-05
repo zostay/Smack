@@ -8,7 +8,7 @@ use Smack::Util;
 use Apache::LogFormat::Compiler;
 
 has &.logger;
-has Str $.format is required = 'combined';
+has Str $.format = 'combined';
 has $!compiled-format;
 
 has %.block-handlers;
