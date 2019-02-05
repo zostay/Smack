@@ -53,7 +53,10 @@ multi method mount(|c) {
 method configure(%config) {
     # sort by $host length then $location length
     @!mapping .= sort({ (.[0] ~~ Str ?? .[0].chars !! 0), .[1].chars })
-              .= reverse;
+              .= reverse
+
+              # And configure anything internally
+              .= map({ (.[0], .[1], .[2].returns ~~ Callable ?? .[2].(%config) !! .[2]) });
 }
 
 method call(%env) {
