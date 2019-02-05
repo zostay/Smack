@@ -65,10 +65,14 @@ class Smack::Builder {
         }
     }
 
-    method mount($location, &app) {
+    multi method mount($location, &app) {
         $!urlmap .= new without $!urlmap;
         $!urlmap.mount($location, &app);
         return;
+    }
+
+    multi method mount($location, $app where *.^can('to-app')) {
+        self.mount($location, $app.to-app);
     }
 
     method is-mount-used() { defined $!urlmap }
