@@ -120,6 +120,13 @@ method accept-loop(&app) {
 
                     # We stop here until the response is done beofre handling another request
                     await self.handle-response($res, :$conn, :%env, :$ready, :$header-done, :$body-done);
+
+                    CATCH {
+                        default {
+                            note "[error] ", $_;
+                            self.output-error($conn, :$header-done-promise, :$body-done-promise);
+                        }
+                    }
                 }
             }
         }
@@ -163,6 +170,24 @@ method handle-response(Promise() $promise, :$conn, :%env, :$ready, :$header-done
         # keep the promise the same
         $promise.result;
     });
+}
+
+method output-error($conn, :$header-done-promise, :$body-done-promise) {
+    note "[error] gracefully closing connection on error";
+
+    if $header-done-promise && $header-done-promise.status ~~ Kept {
+        $conn.close;
+    }
+    elsif $body-done-promise && $header-done-promise.status ~~ Kept {
+        $conn.close;
+    }
+    else {
+        $conn.write("HTTP/1.1 500 Internal Server Error\x0d\x0a".encode('ISO-8859-1'));
+        $conn.write("Content-Type: text/plain\x0d\x0a".encode('ISO-8859-1'));
+        $conn.write("\x0d\x0a".encode('ISO-8859-1'));
+        $conn.write("Internal Server Error".encode('ISO-8859-1'));
+        $conn.close;
+    }
 }
 
 method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$header-done, :$body-done, :%env) {
@@ -210,7 +235,7 @@ method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$heade
 
             QUIT {
                 my $x = $_;
-                note "[warn] closing client connection on error";
+                note "[error] closing client connection on error";
                 $conn.close;
                 CATCH {
                     # this is stupid, IO::Socket needs better exceptions
