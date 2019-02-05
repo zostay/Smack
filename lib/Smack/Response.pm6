@@ -12,16 +12,16 @@ has Int $.status;
 has HTTP::Headers $.headers handles <header Content-Length Content-Type> = HTTP::Headers.new;
 has @.body = [];
 
-multi method redirect(Str $location, :$status = 302) {
+multi method redirect(Smack::Response:D: Str $location, :$status = 302) {
     $!status = $status;
     self.headers.Location = $location;
 }
 
-multi method redirect() {
+multi method redirect(Smack::Response:D:) {
     self.headers.Location
 }
 
-method finalize() {
+method finalize(Smack::Response:D:) {
     die X::Smack::Response::MissingStatus.new
         unless $!status.defined;
 

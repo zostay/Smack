@@ -10,16 +10,15 @@ sub MAIN(
     Str  :o(:$host),
     Int  :p(:$port),
 ) is export(:MAIN) {
-    my %options;
-    %options<app>  = $app  if $app;
-    %options<host> = $host if $host;
-    %options<port> = $port if $port;
-
-    my $runner = Smack::Runner.new(|%options);
+    my $runner = Smack::Runner.new(
+        |do with $app  { :$app },
+        |do with $host { :$host },
+        |do with $port { :$port },
+    );
     $runner.run;
 }
 
-has Str $.app = 'app.p6w';
+has $.app = 'app.p6w';
 has Str $.host = '0.0.0.0';
 has Int $.port = 5000;
 has Str $!loader-name = 'Basic';
@@ -48,6 +47,12 @@ method load-server($loader) returns Smack::Handler {
 
 method run {
     my $server = self.load-server($!loader);
-    my &app = $!app.IO.slurp.EVAL;
+
+    my &app = do given $.app {
+        when Str { $!app.IO.slurp.EVAL }
+        when Callable { $.app }
+        default { die "unknown app argument type" }
+    }
+
     $server.run(&app);
 }
