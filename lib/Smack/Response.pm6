@@ -8,7 +8,7 @@ class X::Smack::Response::MissingStatus is Exception {
     method message() { "missing status during finalize" }
 }
 
-has Int $.status;
+has Int $.status is rw;
 has HTTP::Headers $.headers handles <header Content-Length Content-Type> = HTTP::Headers.new;
 has @.body = [];
 
