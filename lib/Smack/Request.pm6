@@ -73,23 +73,8 @@ method !parse-query {
     self!parse-urlencoded-string(%!env<QUERY_STRING>);
 }
 
-method raw-content returns Blob {
-    my $fh     = self.input;
-    my $length = self.Content-Length;
-
-    if $fh.defined && $length.defined && $length.Int > 0 {
-        { # WHY?
-            LEAVE {
-                $fh.seek(0) if %!env<p6wx.input.buffered>;
-            }
-
-            $fh.read($length.Int);
-        }
-    }
-
-    else {
-        ''.encode
-    }
+method raw-content(--> Blob) {
+    (await self.input.reduce(&infix:<~>)) // Blob.new
 }
 
 method content {
