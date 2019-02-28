@@ -1,7 +1,7 @@
 {
     "name" : "Smack",
-    "version" : "*",
-    "description" : "P6W Reference Implementation",
+    "version" : "0.0.0",
+    "description" : "P6WAPI Reference Implementation",
     "author" : "Andrew Sterling Hanenkamp",
     "provides" : {
         "Smack::Request": "lib/Smack/Request.pm6"
@@ -17,5 +17,25 @@
         "HTTP::Supply",
         "HTTP::Status"
     ],
-    "source-url" : "git://github.com/zostay/Smack.git"
+    "source-url" : "git://github.com/zostay/Smack.git",
+    "support": {
+        "source": "git://github.com/zostay/Smack.git"
+    },
+    "build-depends": [
+
+    ],
+    "test-depends": [
+        "Test",
+        "Test::META"
+    ],
+    "license": "Artistic-2.0",
+    "tags": [
+
+    ],
+    "authors": [
+        "Sterling Hanenkamp <hanenkamp@cpan.org>"
+    ],
+    "perl": "6.c",
+    "auth": "github.zostay",
+    "meta-version": "0"
 }
