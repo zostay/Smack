@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+    * Fix Smack module.
+
 v0.0.1	2019-02-28
 
     * EXPERIMENTAL (and very incomplete) release.
