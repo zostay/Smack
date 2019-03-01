@@ -13,16 +13,16 @@ Smack - Reference implementation of the Web API for Perl 6
 This aims to be the reference implementation of the P6W standard. The aims of
 this project include:
 
-* Providing an example implementation of P6W to aid the development of other
-  servers.
+=item Providing an example implementation of P6W to aid the development of other
+servers.
 
-* Provide a set of tools and utilities to aid in the building of applications
-  and middleware.
+=item Provide a set of tools and utilities to aid in the building of applications
+and middleware.
 
-* Provide a testing ground for future extensions and modifications to P6W.
+=item Provide a testing ground for future extensions and modifications to P6W.
 
-* Provide a testing ground for determining how difficult P6W is to implement
-  at all layers of development.
+=item Provide a testing ground for determining how difficult P6W is to implement
+at all layers of development.
 
 =head1 STATUS
 
@@ -113,7 +113,7 @@ sub app(%env) {
         200, [ Content-Type => 'text/plain' ], 'Hello, World!';
     }
 }
-=end
+=end code
 
 =item until you have everything in your path, you can start the application
 with C<perl6 -I lib/ bin/smackup --app=examples/hello-world.p6w>
