@@ -51,8 +51,8 @@ is $req.query-string, 'a+b=c&(*+Pascal+*)=%2F*%20C%20*%2F;foo', 'query-string is
 is $req.script-name, 'falcon.psgi', 'script-name is good';
 is $req.scheme, 'http', 'scheme is good';
 is $req.secure, False, 'secure is good';
-isa-ok $req.body, IO::Handle, 'body is good';
-isa-ok $req.input, IO::Handle, 'input is good';
+isa-ok $req.body, Supply, 'body is good';
+isa-ok $req.input, Supply, 'input is good';
 
 is $req.query-parameters{'a b'}, 'c', 'qs a b is good';
 is $req.query-parameters{'(* Pascal *)'}, '/* C */', 'qs (* Pascal *) is good';
