@@ -7,6 +7,8 @@ use HTTP::Headers;
 use Smack::Test::Smackup;
 use Smack::Client::Request::Common;
 
+plan 3;
+
 # TODO WHY!? Fix testing server on Travis
 skip-rest "Fails on Travis CI for some reason."
     if %*ENV<TRAVIS>;
