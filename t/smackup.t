@@ -9,7 +9,7 @@ use Smack::Client::Request::Common;
 
 # TODO WHY!? Fix testing server on Travis
 skip-rest "Fails on Travis CI for some reason."
-    if %*ENV{TRAVIS};
+    if %*ENV<TRAVIS>;
 
 my @tests =
     -> $c, $u {
