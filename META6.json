@@ -4,7 +4,7 @@
   "name": "Smack",
   "author": "Andrew Sterling Hanenkamp",
   "build-depends": [
-    
+
   ],
   "test-depends": [
     "Test",
@@ -63,14 +63,14 @@
     "Sterling Hanenkamp <hanenkamp@cpan.org>"
   ],
   "tags": [
-    
+
   ],
   "license": "Artistic-2.0",
   "support": {
     "source": "git://github.com/zostay/Smack.git"
   },
   "resources": [
-    
+
   ],
   "depends": [
     "Apache::LogFormat::Compiler",
