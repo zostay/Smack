@@ -1,4 +1,4 @@
-{{$NEXT}}
+v0.1.1	2019-03-04
 
     * Removed some experimental packages that are not read and maybe never will
       be because they were experimental. They were not finished and did not work.
