@@ -43,7 +43,6 @@
     "Smack::Test::MockHTTP": "lib/Smack/Test/MockHTTP.pm6",
     "Smack::Handler::HTTP::Easy": "lib/Smack/Handler/HTTP/Easy.pm6",
     "Smack::Handler::Standalone": "lib/Smack/Handler/Standalone.pm6",
-    "Smack::Middleware::Chunked": "lib/Smack/Middleware/Chunked.pm6",
     "Smack::Test::Smackup": "lib/Smack/Test/Smackup.pm6",
     "Smack::Client::Message": "lib/Smack/Client/Message.pm6",
     "Smack::App::File": "lib/Smack/App/File.pm6",
