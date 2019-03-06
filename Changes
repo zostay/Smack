@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+    * Fixing broken META
+
 v0.1.1	2019-03-04
 
     * Removed some experimental packages that are not read and maybe never will

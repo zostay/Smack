@@ -23,14 +23,14 @@
     "Test::META"
   ],
   "build-depends": [
-    
+
   ],
   "description": "P6WAPI Reference Implementation",
   "tags": [
-    
+
   ],
   "resources": [
-    
+
   ],
   "auth": "github.zostay",
   "support": {
@@ -71,9 +71,7 @@
     "Smack::Handler::CGI": "lib/Smack/Handler/CGI.pm6",
     "Smack::Client::Response": "lib/Smack/Client/Response.pm6",
     "Smack::Test::Server": "lib/Smack/Test/Server.pm6",
-    "Smack::Middleware::Protocol::HTTP1": "lib/Smack/Middleware/Protocol/HTTP1.pm6",
     "Smack::Client::Request::Common": "lib/Smack/Client/Request/Common.pm6",
-    "Smack::Middleware::HTTP11": "lib/Smack/Middleware/HTTP11.pm6",
     "Smack::Builder": "lib/Smack/Builder.pm6",
     "Smack": "lib/Smack.pm6",
     "Smack::Client::Request": "lib/Smack/Client/Request.pm6",
