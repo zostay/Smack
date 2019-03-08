@@ -16,7 +16,7 @@ has %.char-handlers;
 
 my constant %formats = {
     common   => '%h %l %u %t "%r" %>s %b',
-    combined => '%h %l %u %t "%r" %>2 %b "${Referer}i" "%{User-agent}i"',
+    combined => '%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-agent}i"',
 };
 
 method configure(%env) {
