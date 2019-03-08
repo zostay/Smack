@@ -56,5 +56,5 @@ method log-line(Int() $status, @headers, %env, :$content-length, :$req-time, Dat
         $content-length,
         $req-time,
         $time,
-    );
+    ).chomp;
 }
