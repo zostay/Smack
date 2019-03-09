@@ -35,17 +35,20 @@ method configure(%env) {
 
 method call(%env) {
     callsame() then-with-response -> $status, @headers, $entity {
-        my $cl = content-length(%env, $entity).Promise;
-        start {
-            my $content-length = await $cl;
+        my Promise $content-length-promise .= new;
+
+        $content-length-promise.then({
+            my $content-length = .result;
+
+            my $log-line = self.log-line($status, @headers, %env, :$content-length);
+            &.logger.($log-line);
+
             CATCH {
                 default { &.logger.($_) }
             }
-            my $log-line = self.log-line($status, @headers, %env, :$content-length);
-            &.logger.($log-line);
-        }
+        });
 
-        Nil
+        content-length(%env, $entity, $content-length-promise, :defer);
     }
 }
 
