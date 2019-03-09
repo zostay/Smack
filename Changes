@@ -1,3 +1,5 @@
+{{$NEXT}}
+
 v0.2.0	2019-03-09
 
     * Improve the content-length() function in Smack::Util so that it does not
