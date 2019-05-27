@@ -29,8 +29,8 @@ sub GET(Smack::URI:D() $uri, *@headers, *%headers) is export {
     $req;
 }
 
-sub POST(Smack::URI:D() $uri, :$content, *@headers, *%headers) is export {
-    my $req = Smack::Client::Request.new(:method<POST>, :$uri);
+our sub request-type-with-data(Str:D $method, Smack::URI:D() $uri, :$content, *@headers, *%headers) {
+    my $req = Smack::Client::Request.new(:$method, :$uri);
 
     add-headers($req, @headers, %headers);
 
@@ -56,3 +56,6 @@ sub POST(Smack::URI:D() $uri, :$content, *@headers, *%headers) is export {
 
     $req;
 }
+
+sub POST(|c) is export { request-type-with-data('POST', |c) }
+sub PUT(|c) is export { request-type-with-data('PUT', |c) }

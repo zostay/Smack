@@ -51,7 +51,7 @@ method run {
     my &app = do given $.app {
         when Str { $!app.IO.slurp.EVAL }
         when Callable { $.app }
-        default { die "unknown app argument type" }
+        default { die "unknown app argument type: $!app.^name()" }
     }
 
     $server.run(&app);
