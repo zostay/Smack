@@ -1,6 +1,6 @@
 use v6;
 
-unit module Smack:ver<0.2.0>:auth<github:zostay>;
+unit module Smack:ver<0.3.0>:auth<github:zostay>;
 
 =begin pod
 
