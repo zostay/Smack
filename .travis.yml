@@ -1,8 +1,9 @@
 language: perl6
 perl6:
-  - latest
+  - '2018.03'
   - '2018.10'
   - '2018.06'
+  - latest
 install:
   - rakudobrew build-zef
   - zef install --depsonly .
