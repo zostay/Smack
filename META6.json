@@ -51,14 +51,14 @@
     "Test::META"
   ],
   "resources": [
-    
+
   ],
   "build-depends": [
-    
+
   ],
   "license": "Artistic-2.0",
   "tags": [
-    
+
   ],
   "source-url": "git://github.com/zostay/Smack.git",
   "authors": [
@@ -79,7 +79,8 @@
     "HTTP::Easy",
     "HTTP::Headers",
     "HTTP::Supply",
-    "HTTP::Status"
+    "HTTP::Status",
+    "IO::Socket::Async::SSL"
   ],
   "auth": "github.zostay",
   "meta-version": "0",
