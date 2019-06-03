@@ -1,6 +1,10 @@
 {{$NEXT}}
 
+    * Added SSL support to Smack::Client.
+
 v0.3.0	2019-05-27
+
+    * Adding support for PUT in Smack::Client::Request::Common.
 
 v0.2.0	2019-03-09
 

@@ -14,6 +14,8 @@ has Str $.method is rw is required;
 method host(--> Str) { $!uri.host }
 method port(--> UInt) { $!uri.port }
 
+method secure(--> Bool) { $!uri.scheme eq 'https' }
+
 multi method to-p6wapi(Smack::Client::Request:D: --> Hash) {
     my sub _errors {
         my $errors = Supplier.new;

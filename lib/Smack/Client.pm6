@@ -15,12 +15,22 @@ has Str $.enc = 'utf-8';
 
 has Str $.user-agent = "Smack::Client/{::?PACKAGE.^ver//0}";
 
+method connection-class(Bool $secure) {
+    if ($secure) {
+        use IO::Socket::Async::SSL;
+        IO::Socket::Async::SSL;
+    }
+    else {
+        IO::Socket::Async;
+    }
+}
+
 multi method request(Smack::Client::Request $req --> Promise:D) {
     start {
         $req.headers.User-Agent ||= $!user-agent;
         $req.headers.Connection ||= 'close';
 
-        my $conn = await IO::Socket::Async.connect($req.host, $req.port, :$!enc);
+        my $conn = await self.connection-class($req.secure).connect($req.host, $req.port, :$!enc);
 
         $req.send($conn);
 
