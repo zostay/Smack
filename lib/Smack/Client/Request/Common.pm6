@@ -24,6 +24,8 @@ sub HEAD(Smack::URI:D() $uri, *@headers, *%headers) is export {
 sub GET(Smack::URI:D() $uri, *@headers, *%headers) is export {
     my $req = Smack::Client::Request.new(:method<GET>, :$uri);
 
+    $req.Content-Length = 0;
+
     add-headers($req, @headers, %headers);
 
     $req;

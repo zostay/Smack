@@ -78,6 +78,8 @@ my sub make-chunked-body(Supply:D $body --> Supply:D) {
     }
 }
 
+method normalize(--> Nil) { }
+
 method send(Smack::Client::Message:D: $handle --> Nil) {
     my Supply $body-supply = supply { };
     with $.body {

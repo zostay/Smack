@@ -13,6 +13,7 @@ has Str $.method is rw is required;
 
 method host(--> Str) { $!uri.host }
 method port(--> UInt) { $!uri.port }
+method relative-uri(--> Str) { $!uri.path-query // '/' }
 
 method secure(--> Bool) { $!uri.scheme eq 'https' }
 
@@ -65,13 +66,21 @@ multi method to-p6wapi(Smack::Client::Request:D: %config --> Hash) {
     %env;
 }
 
-method send(Smack::Client::Request:D: $handle --> Nil) {
+method normalize(--> Nil) {
     $.headers.Host = $.host if !$.headers.Host && $.host;
 
-    $handle.write: "$.method $.uri $.protocol\r\n".encode("iso-8859-1");
+    callsame;
+
+    Nil;
+}
+
+method send(Smack::Client::Request:D: $handle --> Nil) {
+    self.normalize;
+    $handle.write: "$.method $.relative-uri $.protocol\r\n".encode("iso-8859-1");
     callsame;
 }
 
 multi method gist(Smack::Client::Request:D: --> Str:D) {
-    return [~] "$.method $.uri $.protocol\r\n", callsame;
+    self.normalize;
+    return [~] "$.method $.relative-uri $.protocol\r\n", callsame;
 }
