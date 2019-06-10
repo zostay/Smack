@@ -57,7 +57,7 @@ multi method request(Smack::Client::Request $req --> Promise:D) {
 
             whenever $request-took-too-long {
                 $conn.close;
-                die "server took too long to response to request (more than $!request-timeout seconds)";
+                die "server took too long to respond to request (more than $!request-timeout seconds)";
             }
         }
 
