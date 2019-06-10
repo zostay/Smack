@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+    * Better handling of request-uri in the request line of client requests.
+    * Better client request gists.
+
 v0.4.0	2019-06-02
 
     * Added SSL support to Smack::Client.
