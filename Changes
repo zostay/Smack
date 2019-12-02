@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+    * BREAKING: Renaming to support 0.9.Draft of RakuWAPI. This changes some
+      functions from wapi to just wapi-*, environment variables named p6w.* are
+      now wapi.* and p6wx.* are now wapix.*
+    * Partial renaming because of the Perl 6 to Raku rename.
     * Better handling of request-uri in the request line of client requests.
     * Better client request gists.
 
