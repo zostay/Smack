@@ -25,7 +25,7 @@ my @tests =
         is $response.content, "3", "sent 3 times";
     };
 
-my $test-server = Smack::Test::Smackup.new(:app('sent-check.p6w'), :@tests);
+my $test-server = Smack::Test::Smackup.new(:app('sent-check.wapi'), :@tests);
 $test-server.run;
 
 done-testing;

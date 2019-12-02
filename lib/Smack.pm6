@@ -28,9 +28,8 @@ at all layers of development.
 
 The current status of this code is VERY ALPHA. The P6W specification is still
 wet on the paper and this implementation is not really even complete yet. The
-standalone server works and is generally compatible with the 0.4.Draft of P6W
-(as of this writing, I have just started on 0.5.Draft which this server does not
-yet support). There is practically no documentation at this point.
+standalone server works and is generally compatible with the 0.9.Draft of
+RakuWAPI.  There is practically no documentation at this point.
 
 At this point, I am in the process of porting the features of Plack to Smack as
 a way of testing whether or not the P6W specification is feasible. The goal is
@@ -100,7 +99,7 @@ to install on other platforms).
 basic level
 
 =item If that looks good, a simple C<Hello World> example is provided in
-C<examples/hello-world.p6w>:
+C<examples/hello-world.wapi>:
 
 =begin code
 #!smackup
@@ -116,7 +115,7 @@ sub app(%env) {
 =end code
 
 =item until you have everything in your path, you can start the application
-with C<perl6 -I lib/ bin/smackup --app=examples/hello-world.p6w>
+with C<perl6 -I lib/ bin/smackup --app=examples/hello-world.wapi>
 
 =item that command should show you some debugging output, like this:
 

@@ -12,7 +12,7 @@ method run(&app) {
     my $vow = $sent.vow;
 
     my %env = %*ENV,
-        'p6sgi.version'         => Version.new('0.4.Draft'),
+        'p6sgi.version'         => Version.new('0.9.Draft'),
         'p6sgi.inputs'          => $*IN,
         'p6sgi.errors'          => $*ERR,
         'p6sgi.url-scheme'      => %*ENV<HTTPS>//'off' ~~ any('on', '1') ?? 'https' !! 'http',

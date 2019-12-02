@@ -4,10 +4,10 @@ use v6;
 
 sub app(%env) {
     start {
-        my $input = %env<p6w.input>;
+        my $input = %env<wapi.input>;
         react {
             whenever $input -> $buf {
-                %env<p6w.errors>.emit: $buf.decode('utf8');
+                %env<wapi.errors>.emit: $buf.decode('utf8');
                 LAST done;
             }
         }

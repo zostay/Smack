@@ -3,13 +3,13 @@ use v6;
 use Smack::Client::Request;
 
 my constant DEFAULT-CONFIG =
-    'p6w.version'          => v0.7.Draft,
-    'p6w.errors'           => Supplier.new,
-    'p6w.multithread'      => False,
-    'p6w.multiprocess'     => False,
-    'p6w.run-once'         => True,
-    'p6w.protocol.support' => set('request-response'),
-    'p6w.protocol.enabled' => SetHash.new('request-response'),
+    'wapi.version'          => v0.9.Draft,
+    'wapi.errors'           => Supplier.new,
+    'wapi.multithread'      => False,
+    'wapi.multiprocess'     => False,
+    'wapi.run-once'         => True,
+    'wapi.protocol.support' => set('request-response'),
+    'wapi.protocol.enabled' => SetHash.new('request-response'),
     ;
 
 class Smack::Test { ... }

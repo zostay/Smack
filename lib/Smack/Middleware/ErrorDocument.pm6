@@ -22,8 +22,8 @@ method call(%env) {
         my $path = %.error-documents{$s};
         if $.subrequest {
             for %env.kv -> $key, $value {
-                unless $key ~~ /^p6w/ {
-                    %env{"p6wx.errordocument.$key"} = $value;
+                unless $key ~~ /^wapi/ {
+                    %env{"wapix.errordocument.$key"} = $value;
                 }
             }
 

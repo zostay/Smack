@@ -17,7 +17,7 @@ my @tests =
     },
     ;
 
-my $test-server = Smack::Test::Smackup.new(:app<echo-err.p6w>, :@tests);
+my $test-server = Smack::Test::Smackup.new(:app<echo-err.wapi>, :@tests);
 $test-server.run;
 
 $test-server.treat-err-as-tap;

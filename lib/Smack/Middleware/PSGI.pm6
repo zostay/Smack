@@ -52,18 +52,18 @@ method call(%env) {
         }
     }
 
-    my $input = InputWrapper.new(input => %env<p6w.input>);
+    my $input = InputWrapper.new(input => %env<wapi.input>);
 
     # Install PSGI environment
     %env = %env,
         'psgi.version'      => [ 1, 1 ],
-        'psgi.url_scheme'   => %env<p6w.url-scheme>,
+        'psgi.url_scheme'   => %env<wapi.url-scheme>,
         'psgi.input'        => $input,
-        'psgi.errors'       => %env<p6w.errors>,
-        'psgi.multithread'  => %env<p6w.multithread>,
-        'psgi.multiprocess' => %env<p6w.multiprocess>,
-        'psgi.run_once'     => %env<p6w.run-once>,
-        'psgi.nonblocking'  => %env<p6w.nonblocking>,
+        'psgi.errors'       => %env<wapi.errors>,
+        'psgi.multithread'  => %env<wapi.multithread>,
+        'psgi.multiprocess' => %env<wapi.multiprocess>,
+        'psgi.run_once'     => %env<wapi.run-once>,
+        'psgi.nonblocking'  => %env<wapi.nonblocking>,
         'psgi.streaming'    => True,
         ;
 

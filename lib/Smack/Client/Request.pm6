@@ -25,13 +25,13 @@ multi method to-wapi(Smack::Client::Request:D: --> Hash) {
     }
 
     my %config =
-        'p6w.version'          => v0.7.Draft,
-        'p6w.errors'           => _errors,
-        'p6w.run-once'         => False,
-        'p6w.multithread'      => False,
-        'p6w.multiprocess'     => False,
-        'p6w.protocol.support' => set('request-response'),
-        'p6w.protocol.enabled' => set('request-response'),
+        'wapi.version'          => v0.9.Draft,
+        'wapi.errors'           => _errors,
+        'wapi.run-once'         => False,
+        'wapi.multithread'      => False,
+        'wapi.multiprocess'     => False,
+        'wapi.protocol.support' => set('request-response'),
+        'wapi.protocol.enabled' => set('request-response'),
         ;
 
     self.to-wapi(%config)
@@ -51,16 +51,16 @@ multi method to-wapi(Smack::Client::Request:D: %config --> Hash) {
                 'HTTP_' ~ .name.uc.trans('-' => '_') => .value
             }
         }),
-        SERVER_PORT         => $.port,
-        SERVER_NAME         => $.host,
-        SCRIPT_NAME         => '',
-        REQUEST_METHOD      => $.method,
-        'p6w.url-scheme'    => $.uri.scheme,
-        'p6w.body.encoding' => 'UTF-8',
-        'p6w.protocol'      => 'request-response',
-        PATH_INFO           => uri-unescape(~$.uri.path),
-        QUERY_STRING        => ~$.uri.query // '',
-        REQUEST_URI         => ~$.uri,
+        SERVER_PORT          => $.port,
+        SERVER_NAME          => $.host,
+        SCRIPT_NAME          => '',
+        REQUEST_METHOD       => $.method,
+        'wapi.url-scheme'    => $.uri.scheme,
+        'wapi.body.encoding' => 'UTF-8',
+        'wapi.protocol'      => 'request-response',
+        PATH_INFO            => uri-unescape(~$.uri.path),
+        QUERY_STRING         => ~$.uri.query // '',
+        REQUEST_URI          => ~$.uri,
         ;
 
     %env;

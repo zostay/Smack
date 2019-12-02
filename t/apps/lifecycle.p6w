@@ -8,12 +8,12 @@ sub nt { ++$test }
 
 sub app(%env) {
     start {
-        %env<p6w.errors>.emit: "ok {nt} # app run";
+        %env<wapi.errors>.emit: "ok {nt} # app run";
 
-        my $not = %env<p6w.protocol> eq 'request-response' ?? '' !! 'not ';
-        %env<p6w.errors>.emit: "{$not}ok {nt} # p6w.protocol is set to request-response";
+        my $not = %env<wapi.protocol> eq 'request-response' ?? '' !! 'not ';
+        %env<wapi.errors>.emit: "{$not}ok {nt} # wapi.protocol is set to request-response";
 
-        %env<p6w.errors>.emit: plan;
+        %env<wapi.errors>.emit: plan;
 
         # the rest of the env is tested by t/env.t
         200, [ Content-Type => 'text/plain' ], [ 'ok' ];
@@ -21,6 +21,6 @@ sub app(%env) {
 }
 
 sub config(%env) returns Callable {
-    %env<p6w.errors>.emit: "ok {nt} # config run";
+    %env<wapi.errors>.emit: "ok {nt} # config run";
     &app;
 }

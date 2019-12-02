@@ -27,7 +27,7 @@ my @tests =
 
 for <hello hello-supply hello-psgi> -> $name {
     subtest {
-        my $app = $name ~ ".p6w";
+        my $app = $name ~ ".wapi";
         my $test-server = Smack::Test::Smackup.new(:$app, :@tests,
             cmd => [ 't/server.pl6', '--port={port}', '--app=t/apps/{app}' ],
         );

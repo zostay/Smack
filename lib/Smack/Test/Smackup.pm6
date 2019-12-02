@@ -133,7 +133,7 @@ method treat-err-as-tap() {
                 $<got> = [ \d+ ] >>
                 [ \s* "#" \s* $<msg> = [ .* ] ]
             / {
-                flunk("out of order TAP output from p6w.errors");
+                flunk("out of order TAP output from wapi.errors");
                 diag("\texpected: ok $i\n\t     got: $<ok> $<got>");
                 is $<ok>, 'ok', $<msg>;
                 $i++;
@@ -150,7 +150,7 @@ method treat-err-as-tap() {
 
             # Warn on other stuff
             default {
-                note qq[# Strange "TAP" output from p6w.errors: $_];
+                note qq[# Strange "TAP" output from wapi.errors: $_];
             }
         }
 
@@ -158,7 +158,7 @@ method treat-err-as-tap() {
             plan $plan;
         }
         else {
-            flunk(qq[no plan in "TAP" from p6w.errors]);
+            flunk(qq[no plan in "TAP" from wapi.errors]);
         }
     }, 'treat-err-as-tap';
 }

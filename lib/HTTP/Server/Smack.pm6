@@ -24,13 +24,13 @@ my sub _errors {
 }
 
 has %!global =
-    'p6w.version'          => v0.7.Draft,
-    'p6w.errors'           => _errors,
-    'p6w.run-once'         => False,
-    'p6w.multithread'      => False,
-    'p6w.multiprocess'     => False,
-    'p6w.protocol.support' => set('request-response'),
-    'p6w.protocol.enabled' => set('request-response'),
+    'wapi.version'          => v0.9.Draft,
+    'wapi.errors'           => _errors,
+    'wapi.run-once'         => False,
+    'wapi.multithread'      => False,
+    'wapi.multiprocess'     => False,
+    'wapi.protocol.support' => set('request-response'),
+    'wapi.protocol.enabled' => set('request-response'),
     ;
 
 method start() {
@@ -76,12 +76,12 @@ method accept-loop(&app) {
                 SERVER_NAME           => $!host,
                 SCRIPT_NAME           => '',
                 #REMOTE_ADDR           => $conn.localhost,
-                'p6w.url-scheme'      => 'http',
-                'p6w.body.encoding'   => 'UTF-8',
-                'p6w.ready'           => $ready-promise,
-                'p6w.protocol'        => 'request-response',
-                'p6wx.header.done'    => $header-done-promise,
-                'p6wx.body.done'      => $body-done-promise,
+                'wapi.url-scheme'      => 'http',
+                'wapi.body.encoding'   => 'UTF-8',
+                'wapi.ready'           => $ready-promise,
+                'wapi.protocol'        => 'request-response',
+                'wapix.header.done'    => $header-done-promise,
+                'wapix.body.done'      => $body-done-promise,
                 ;
 
             for %!global.keys -> $key {
@@ -165,7 +165,7 @@ method handle-response(Promise() $promise, :$conn, :%env, :$ready, :$header-done
 
         # consume and discard the bytes in the input stream, just in case the app
         # didn't read from it.
-        #%env<p6w.input>.tap if %env<p6w.input> ~~ Supply:D;
+        #%env<wapi.input>.tap if %env<wapi.input> ~~ Supply:D;
 
         # keep the promise the same
         $promise.result;
@@ -191,7 +191,7 @@ method output-error($conn, :$header-done-promise, :$body-done-promise) {
 }
 
 method handle-inner(Int $status, @headers, Supply $body, $conn, :$ready, :$header-done, :$body-done, :%env) {
-    my $charset = self.send-header($status, @headers, $conn) // %env<p6w.body.encoding>;
+    my $charset = self.send-header($status, @headers, $conn) // %env<wapi.body.encoding>;
     $header-done andthen $header-done.keep(True);
 
     react {

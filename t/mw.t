@@ -15,7 +15,7 @@ my @tests =
     },
     ;
 
-my $test-server = Smack::Test::Smackup.new(:app<mw.p6w>, :@tests);
+my $test-server = Smack::Test::Smackup.new(:app<mw.wapi>, :@tests);
 $test-server.run;
 note $test-server.err;
 

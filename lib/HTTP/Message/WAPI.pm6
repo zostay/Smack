@@ -54,15 +54,15 @@ sub request-to-wapi(HTTP::Request $req, :env(%overrides), :%config) is export {
 }
 
 proto response-from-wapi(|) is export { * }
-multi response-from-wapi(Promise:D $p6w-promise) is export {
-    samewith(await $p6w-promise);
+multi response-from-wapi(Promise:D $wapi-promise) is export {
+    samewith(await $wapi-promise);
 }
 
 constant CR   = 0x0d;
 constant LF   = 0x0a;
 constant CRLF = utf8.new(CR, LF);
 
-multi response-from-wapi(@p6w-res (Int() $status, @headers, Supply() $entity)) is export {
+multi response-from-wapi(@wapi-res (Int() $status, @headers, Supply() $entity)) is export {
     my HTTP::Response $res .= new($status);
     $res.header.field: |$_ for @headers;
     $res.set-code($status);

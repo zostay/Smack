@@ -18,7 +18,7 @@ sub MAIN(
     $runner.run;
 }
 
-has $.app = 'app.p6w';
+has $.app = 'app.wapi';
 has Str $.host = '0.0.0.0';
 has Int $.port = 5000;
 has Str $!loader-name = 'Basic';

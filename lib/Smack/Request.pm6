@@ -22,14 +22,14 @@ method path-info    is rw { return-rw %!env<PATH_INFO> }
 method path               { %!env<PATH_INFO> // '/' }
 method query-string is rw { return-rw %!env<QUERY_STRING> }
 method script-name  is rw { return-rw %!env<SCRIPT_NAME> }
-method scheme       is rw { return-rw %!env<p6w.url_scheme> }
+method scheme       is rw { return-rw %!env<wapi.url_scheme> }
 method secure             { self.scheme eq 'https' }
-method body         is rw { return-rw %!env<p6w.input> }
-method input        is rw { return-rw %!env<p6w.input> }
+method body         is rw { return-rw %!env<wapi.input> }
+method input        is rw { return-rw %!env<wapi.input> }
 
-method session         is rw { return-rw %!env<p6wx.session> }
-method session_options is rw { return-rw %!env<p6wx.session.options> }
-method logger          is rw { return-rw %!env<p6wx.logger> }
+method session         is rw { return-rw %!env<wapix.session> }
+method session_options is rw { return-rw %!env<wapix.session.options> }
+method logger          is rw { return-rw %!env<wapix.logger> }
 
 method cookies returns Hash {
     return {} unless self.Cookie;

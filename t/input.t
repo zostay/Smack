@@ -19,7 +19,7 @@ my @tests =
     },
     ;
 
-my $test-server = Smack::Test::Smackup.new(:app<echo.p6w>, :@tests);
+my $test-server = Smack::Test::Smackup.new(:app<echo.wapi>, :@tests);
 $test-server.run;
 
 done-testing;

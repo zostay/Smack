@@ -24,7 +24,7 @@ for <hello hello-supply hello-psgi> -> $name {
     my $msg = '';
 
     my $cgi = Proc::Async.new($*EXECUTABLE, '-Ilib',
-        'bin/smackup', "-a=t/apps/$name.p6w");
+        'bin/smackup', "-a=t/apps/$name.wapi");
     $cgi.stdout.tap(-> $v { $msg ~= $v });
     $cgi.stderr.tap(-> $v { diag($v) });
     my $status = await $cgi.start;

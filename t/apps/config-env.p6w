@@ -5,7 +5,7 @@ use v6;
 my $i = 0;
 
 sub check-type(%env, $got, $expected) {
-    my $err = %env<p6w.errors>;
+    my $err = %env<wapi.errors>;
 
     # fake TAP
 
@@ -29,13 +29,13 @@ sub check-type(%env, $got, $expected) {
 }
 
 sub check-config(%env) {
-    check-type %env, 'p6w.version', Version:D;
-    check-type %env, 'p6w.errors', Supplier:D;
-    check-type %env, 'p6w.multithread', Bool:D;
-    check-type %env, 'p6w.multiprocess', Bool:D;
-    check-type %env, 'p6w.run-once', Bool:D;
-    check-type %env, 'p6w.protocol.support', Set:D;
-    check-type %env, 'p6w.protocol.enabled', Set:D;
+    check-type %env, 'wapi.version', Version:D;
+    check-type %env, 'wapi.errors', Supplier:D;
+    check-type %env, 'wapi.multithread', Bool:D;
+    check-type %env, 'wapi.multiprocess', Bool:D;
+    check-type %env, 'wapi.run-once', Bool:D;
+    check-type %env, 'wapi.protocol.support', Set:D;
+    check-type %env, 'wapi.protocol.enabled', Set:D;
 }
 
 sub app(%env) {
@@ -51,13 +51,13 @@ sub app(%env) {
         check-type %env, 'SERVER_PROTOCOL', { $_ ~~ all(Str:D, *.chars > 0) };
         check-type %env, 'CONTENT_LENGTH', Int;
         check-type %env, 'CONTENT_TYPE', Str;
-        check-type %env, 'p6w.url-scheme', Str:D;
-        check-type %env, 'p6w.input', Supply:D;
-        check-type %env, 'p6w.ready', Promise:D;
-        check-type %env, 'p6w.body.encoding', Str:D;
-        check-type %env, 'p6w.protocol', Str:D;
+        check-type %env, 'wapi.url-scheme', Str:D;
+        check-type %env, 'wapi.input', Supply:D;
+        check-type %env, 'wapi.ready', Promise:D;
+        check-type %env, 'wapi.body.encoding', Str:D;
+        check-type %env, 'wapi.protocol', Str:D;
 
-        my $err = %env<p6w.errors>;
+        my $err = %env<wapi.errors>;
         $err.emit: "1..$i";
 
         200, [ Content-Type => 'text/plain' ], [ 'OK' ]

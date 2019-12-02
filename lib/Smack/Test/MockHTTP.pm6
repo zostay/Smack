@@ -15,8 +15,8 @@ multi method request(Smack::Client::Request $request, %config) {
 
         my %env = $request.to-wapi(:%config);
 
-        my $p6w-res := self.run-app(%env, :%config);
-        my Smack::Client::Response $response .= from-wapi($p6w-res);
+        my $wapi-res := self.run-app(%env, :%config);
+        my Smack::Client::Response $response .= from-wapi($wapi-res);
 
         CATCH {
             default {

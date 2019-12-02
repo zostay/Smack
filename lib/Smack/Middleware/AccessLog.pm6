@@ -27,7 +27,7 @@ method configure(%env) {
         %.block-handlers, %.char-handlers);
 
     &!logger //= -> $line {
-        %env<p6w.errors>.emit: $line;
+        %env<wapi.errors>.emit: $line;
     };
 
     callsame();
