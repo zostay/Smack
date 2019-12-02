@@ -1,4 +1,4 @@
-{{$NEXT}}
+v0.5.0	2019-12-01
 
     * BREAKING: Renaming to support 0.9.Draft of RakuWAPI. This changes some
       functions from wapi to just wapi-*, environment variables named p6w.* are
