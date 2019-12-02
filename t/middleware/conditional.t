@@ -32,7 +32,7 @@ my &app = Smack::Middleware::Conditional.new(
     },
 ).to-app;
 
-test-p6wapi &app, -> $c {
+test-wapi &app, -> $c {
     subtest {
         my $res = await $c.request(GET '/', X-AllCaps => 'YES-PLEASE');
         is $res.content, 'HELLO', 'response is modified';

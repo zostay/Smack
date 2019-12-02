@@ -84,7 +84,7 @@ for @tests -> %test {
         app => -> %env { start { %test<app> } }
     );
 
-    test-p6wapi $handler, -> $c {
+    test-wapi $handler, -> $c {
         subtest {
             my $res = await $c.request(%test<request>);
             diag "ERROR: $res.content()" if is-error($res.code);

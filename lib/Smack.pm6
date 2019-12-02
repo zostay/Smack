@@ -50,11 +50,11 @@ implemented around HTTP/1.0 and parts of HTTP/1.1. This has several weaknesses
 when it comes to supporting modern protocols, dealing with high-performance
 applications, and application portability.
 
-P6WAPI aims to be a forward looking specification that incorporates built-in
+RakuWAPI aims to be a forward looking specification that incorporates built-in
 support for HTTP/2, WebSockets, and other concurrent and/or asynchronous
 web-related protocols. It also aims to better support high-performance
 applications and address the portability weaknesses in PSGI. Smack aims to be
-the reference implementation for L<P6WAPI|https://github.com/zostay/P6WAPI>
+the reference implementation for L<RakuWAPI|https://github.com/zostay/RakuWAPI>
 instead.
 
 =head2 How does this differ from Cro?
@@ -64,13 +64,13 @@ aims to produce applications, for the web or otherwise, that are built around
 the concept of pipelines that transform input into output.  These are built
 according to the specific API provided by Cro.
 
-Smack (through the specification in P6WAPI) provides something similar, but
+Smack (through the specification in RakuWAPI) provides something similar, but
 instead of thinking of an application as a pipeline that transforms inputs into
 outputs, it treats the application as an asynchronous subroutine. Pipelining is
 performed by wrapping that subroutine in another subroutine rather than creating
 another transformer class as is done in Cro.
 
-P6WAPI could be implemented as a transformer in Cro or Cro could be made to run
+RakuWAPI could be implemented as a transformer in Cro or Cro could be made to run
 within a Smack web server, but they are fundamentally different ways of thinking
 about a similar problem each with their own trade-offs.
 
@@ -80,7 +80,7 @@ PATCHES WELCOME!! Please help!
 
 If you have any interest in participating in the development of this project,
 please have a look. There is precious little documentation as things are still
-changing a little too quickly in P6WAPI as yet. If you need help please shoot me
+changing a little too quickly in RakuWAPI as yet. If you need help please shoot me
 an email, file an issue, or ping me on IRC. Please note that I am lurking as
 zostay on irc.perl.org and Freenode, but it is unusual that I am actually
 looking at my chat window, so email is your best bet (see below for my email).

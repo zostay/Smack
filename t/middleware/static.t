@@ -31,7 +31,7 @@ my &app = builder {
     -> %env { start { 200, [ Content-Type => 'text/plain', Content-Length => 5 ], 'hello' } }
 }
 
-test-p6wapi &app, -> $c {
+test-wapi &app, -> $c {
     subtest {
         my $path = "t/test.txt".IO;
         my $res = await $c.request(GET "/$path");

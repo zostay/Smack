@@ -13,16 +13,16 @@ multi method request(Smack::Client::Request $request, %config) {
         $request.uri.scheme('http')    unless $request.uri.scheme;
         $request.uri.host('localhost') unless $request.uri.host;
 
-        my %env = $request.to-p6wapi(:%config);
+        my %env = $request.to-wapi(:%config);
 
         my $p6w-res := self.run-app(%env, :%config);
-        my Smack::Client::Response $response .= from-p6wapi($p6w-res);
+        my Smack::Client::Response $response .= from-wapi($p6w-res);
 
         CATCH {
             default {
                 .note;
                 .rethrow;
-                # return Smack::Client::Response.from-p6wapi(start {
+                # return Smack::Client::Response.from-wapi(start {
                 #     500,
                 #     [ Content-Type => 'text/plain' ],
                 #     [ .message ~ .backtrace ]

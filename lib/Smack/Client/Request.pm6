@@ -17,7 +17,7 @@ method relative-uri(--> Str) { $!uri.path-query // '/' }
 
 method secure(--> Bool) { $!uri.scheme eq 'https' }
 
-multi method to-p6wapi(Smack::Client::Request:D: --> Hash) {
+multi method to-wapi(Smack::Client::Request:D: --> Hash) {
     my sub _errors {
         my $errors = Supplier.new;
         $errors.Supply.tap: -> $s { $*ERR.say($s) };
@@ -34,10 +34,10 @@ multi method to-p6wapi(Smack::Client::Request:D: --> Hash) {
         'p6w.protocol.enabled' => set('request-response'),
         ;
 
-    self.to-p6wapi(%config)
+    self.to-wapi(%config)
 }
 
-multi method to-p6wapi(Smack::Client::Request:D: %config --> Hash) {
+multi method to-wapi(Smack::Client::Request:D: %config --> Hash) {
     my %env = |%config,
         HTTP_HOST           => $.host,
         |$.headers.map({

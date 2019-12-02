@@ -1,12 +1,12 @@
 use v6;
 
-unit module HTTP::Message::P6WAPI;
+unit module HTTP::Message::RakuWAPI;
 
 use HTTP::Request;
 use HTTP::Response;
 use HTTP::Status;
 
-sub request-to-p6wapi(HTTP::Request $req, :env(%overrides), :%config) is export {
+sub request-to-wapi(HTTP::Request $req, :env(%overrides), :%config) is export {
     use URI::Escape;
 
     my $uri = $req.uri;
@@ -53,8 +53,8 @@ sub request-to-p6wapi(HTTP::Request $req, :env(%overrides), :%config) is export 
     %env;
 }
 
-proto response-from-p6wapi(|) is export { * }
-multi response-from-p6wapi(Promise:D $p6w-promise) is export {
+proto response-from-wapi(|) is export { * }
+multi response-from-wapi(Promise:D $p6w-promise) is export {
     samewith(await $p6w-promise);
 }
 
@@ -62,7 +62,7 @@ constant CR   = 0x0d;
 constant LF   = 0x0a;
 constant CRLF = utf8.new(CR, LF);
 
-multi response-from-p6wapi(@p6w-res (Int() $status, @headers, Supply() $entity)) is export {
+multi response-from-wapi(@p6w-res (Int() $status, @headers, Supply() $entity)) is export {
     my HTTP::Response $res .= new($status);
     $res.header.field: |$_ for @headers;
     $res.set-code($status);

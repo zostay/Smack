@@ -10,7 +10,7 @@ use Test;
 subtest {
     my $cascade = Smack::App::Cascade.new;
 
-    test-p6wapi $cascade, -> $c {
+    test-wapi $cascade, -> $c {
         my $res = await $c.request(GET '/');
         is $res.code, 404, 'no apps get a 404';
     };
@@ -21,7 +21,7 @@ subtest {
         start { 404, [], [ 'Custom 404 Page' ] }
     };
 
-    test-p6wapi $cascade, -> $c {
+    test-wapi $cascade, -> $c {
         my $res = await $c.request(GET '/conditional-get.t');
         is $res.code, 200, 'found access_log.t';
 

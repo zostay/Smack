@@ -22,11 +22,11 @@ method set-code(Smack::Client::Response:D: StatusCode $new-code --> Str:D) {
     $!message = $new-message; # return the message set
 }
 
-multi method from-p6wapi(Smack::Client::Response:U: Promise $res) {
-    self.from-p6wapi: |(await $res);
+multi method from-wapi(Smack::Client::Response:U: Promise $res) {
+    self.from-wapi: |(await $res);
 }
 
-multi method from-p6wapi(Smack::Client::Response:U: Int() $code, @headers, Supply() $body is copy) {
+multi method from-wapi(Smack::Client::Response:U: Int() $code, @headers, Supply() $body is copy) {
     # This is how this information is provided from HTTP::Supply
     my $message = do with @headers.first(*.key eq '::server-reason-phrase') { .value } else { get_http_status_msg($code) };
     my $protocol = do with @headers.first(*.key eq '::server-protocol') { .value } else { 'HTTP/1.1' };

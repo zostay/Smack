@@ -25,7 +25,7 @@ method finalize(Smack::Response:D:) {
     die X::Smack::Response::MissingStatus.new
         unless $!status.defined;
 
-    my @headers = $!headers.for-P6WAPI;
+    my @headers = $!headers.for-WAPI;
 
     return [
         $!status,

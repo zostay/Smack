@@ -65,17 +65,17 @@ class Smack::Test {
 
     my sub test-factory { $*TEST_FACTORY // ($DEFAULT_TEST_FACTORY //= Smack::TestFactory.new) }
 
-    proto test-p6wapi(|) is export { * };
+    proto test-wapi(|) is export { * };
 
-    multi test-p6wapi($app where { .^can('to-app') }, &client) {
+    multi test-wapi($app where { .^can('to-app') }, &client) {
         samewith($app.to-app, &client);
     }
 
-    multi test-p6wapi(&app, &client) {
+    multi test-wapi(&app, &client) {
         samewith(:&app, :&client);
     }
 
-    multi test-p6wapi(:&app, :&client, *%args) {
+    multi test-wapi(:&app, :&client, *%args) {
         my $tester = test-factory.create(&app, |%args);
         client($tester);
     }

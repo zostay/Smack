@@ -8,7 +8,7 @@ use Test;
 
 my $handler = Smack::App::Directory.new(root => 'share'.IO);
 
-test-p6wapi $handler, -> $c {
+test-wapi $handler, -> $c {
     my $res = await $c.request(GET '/');
     is $res.code, 200, 'getting #foo is 200';
     like $res.content, rx{"/%23foo"}, 'found #foo';

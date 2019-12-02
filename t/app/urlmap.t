@@ -28,7 +28,7 @@ $app.mount("/foo", &app2);
 $app.mount("/foobar", &app3);
 $app.mount("http://bar.example.com/", &app4);
 
-test-p6wapi $app, -> $c {
+test-wapi $app, -> $c {
     my $res;
 
     $res = await $c.request(GET '/');

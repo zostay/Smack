@@ -15,7 +15,7 @@ my &app = builder {
     }
 }
 
-test-p6wapi &app, -> $c {
+test-wapi &app, -> $c {
     my $res = await $c.request(GET '/');
     is $res.header('X-Framework'), 'Dog';
 }

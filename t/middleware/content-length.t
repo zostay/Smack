@@ -45,7 +45,7 @@ for @tests -> %test {
         app => sub (%env) { start { %test<app>(%env) } },
     );
 
-    test-p6wapi $handler, -> $c {
+    test-wapi $handler, -> $c {
         my $res = await $c.request(GET '/');
         diag "ERROR: $res.content()" if is-error($res.code);
         for @(%test<headers>) {

@@ -103,7 +103,7 @@ multi unpack-response(Promise:D $p, &response-handler) {
 
     sub infix:<then-with-response> ($res, &callback --> Promise:D)
 
-This operator can be used by middleware as a shorthand to perform common tasks. The promise, C<$res>, is a response from an P6WAPI application, either a Promise or the 3-element list. The given callback, C<&callback>, will be called with the 3-element list form, similar to this:
+This operator can be used by middleware as a shorthand to perform common tasks. The promise, C<$res>, is a response from an RakuWAPI application, either a Promise or the 3-element list. The given callback, C<&callback>, will be called with the 3-element list form, similar to this:
 
     sub callback(Int:D $code, @headers, Supply:D $entity)
 
@@ -113,7 +113,7 @@ The result of the callback will determine what is done next.
 
 =item C<Supply>. If the value returned is a supply, the entity is replaced int eh response, but the status code and headers are returned as they were given to the callback with no changes.
 
-=item I<Anything else>. Anything else will be treated as a replacement response. This should probably be a Promise, but any acceptable P6WAPI response should be possible.
+=item I<Anything else>. Anything else will be treated as a replacement response. This should probably be a Promise, but any acceptable RakuWAPI response should be possible.
 
 =end pod
 

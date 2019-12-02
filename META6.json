@@ -57,7 +57,7 @@
     "Smack::Middleware::XFramework": "lib/Smack/Middleware/XFramework.pm6",
     "Smack::App::File": "lib/Smack/App/File.pm6",
     "Smack::Middleware::Head": "lib/Smack/Middleware/Head.pm6",
-    "HTTP::Message::P6WAPI": "lib/HTTP/Message/P6WAPI.pm6",
+    "HTTP::Message::WAPI": "lib/HTTP/Message/WAPI.pm6",
     "Smack::Middleware": "lib/Smack/Middleware.pm6",
     "Smack::Middleware::ConditionalGET": "lib/Smack/Middleware/ConditionalGET.pm6",
     "Smack::MIME": "lib/Smack/MIME.pm6",
@@ -66,7 +66,7 @@
   },
   "license": "Artistic-2.0",
   "build-depends": [
-    
+
   ],
   "version": "0.4.0",
   "support": {
@@ -74,13 +74,13 @@
   },
   "name": "Smack",
   "resources": [
-    
+
   ],
   "meta-version": "0",
-  "description": "P6WAPI Reference Implementation",
+  "description": "RakuWAPI Reference Implementation",
   "perl": "6.c",
   "tags": [
-    
+
   ],
   "authors": [
     "Sterling Hanenkamp <hanenkamp@cpan.org>"

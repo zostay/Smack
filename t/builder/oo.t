@@ -19,7 +19,7 @@ sub app(%env) {
 }
 
 sub test-app(&app) {
-    test-p6wapi &app, -> $c {
+    test-wapi &app, -> $c {
         my $res = await $c.request(GET '/app/foo/bar');
         ok $res.header('X-Runtime'), 'has an X-Runtime header';
         is $res.header('X-Framework'), 'Smack::Builder', 'has the correct X-Framework header';

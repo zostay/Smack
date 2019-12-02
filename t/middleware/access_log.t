@@ -32,7 +32,7 @@ subtest {
         logger => -> $line { $log.emit: $line },
     );
 
-    test-p6wapi $test-app, -> $c {
+    test-wapi $test-app, -> $c {
         my $req = GET 'http://example.com/';
         $req.header.field(
             Host            => 'example.com',

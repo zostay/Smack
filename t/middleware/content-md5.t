@@ -16,7 +16,7 @@ sub app(%env) {
 
 my $md5-app = Smack::Middleware::ContentMD5.new(:&app);
 
-test-p6wapi $md5-app, -> $c {
+test-wapi $md5-app, -> $c {
     my $res = await $c.request(GET '/');
     is $res.header('Content-MD5'), '873e1d5cd2ff971fffaef7fcc12222c1', 'MD5 is correct';
 };

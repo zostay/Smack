@@ -61,7 +61,7 @@ multi method request(Smack::Client::Request $req --> Promise:D) {
             }
         }
 
-        Smack::Client::Response.from-p6wapi(|@res);
+        Smack::Client::Response.from-wapi(|@res);
     }
 }
 

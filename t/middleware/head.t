@@ -21,7 +21,7 @@ my &app = anon sub app(%env) {
 
 &app = builder { enable Smack::Middleware::Head; &app }
 
-test-p6wapi &app, -> $c {
+test-wapi &app, -> $c {
     my $res = await $c.request(GET '/');
     is $res.content, "Hello World";
 
