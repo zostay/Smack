@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+    * For some reason, I decided 8MB of images was cool to include. I reduced
+      the size of these.
+
 v0.5.0	2019-12-01
 
     * BREAKING: Renaming to support 0.9.Draft of RakuWAPI. This changes some
