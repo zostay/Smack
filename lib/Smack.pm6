@@ -6,7 +6,7 @@ unit module Smack:ver<0.4.0>:auth<github:zostay>;
 
 =head1 NAME
 
-Smack - Reference implementation of the Web API for Perl 6
+Smack - Reference implementation of the Web API for Raku
 
 =head1 DESCRIPTION
 
@@ -42,7 +42,7 @@ to make sure that the easy things are easy and the hard things are possible.
 
 (This information may be dated. I haven't checked up on it recently.)
 
-The Perl 6 L<Crust|https://github.com/tokuhirom/p6-Crust> project is a port of
+The Raku L<Crust|https://github.com/tokuhirom/p6-Crust> project is a port of
 the older L<PSGI
 specification|https://metacpan.org/pod/release/MIYAGAWA/PSGI-1.102/PSGI.pod>
 for Perl 5. The PSGI specification is a basically serial specification
@@ -87,9 +87,9 @@ looking at my chat window, so email is your best bet (see below for my email).
 
 =head2 How do I get started?
 
-=item Install perl6 (For example, on Mac OSX, C<brew install rakudo-star>
-(rakudo is a compiler for Perl 6.  That command will put the `perl6` executable
-in your path.  See L<http://perl6.org/> for more details or how
+=item Install raku (For example, on Mac OSX, C<brew install rakudo-star>
+(rakudo is a compiler for Raku.  That command will put the `perl6` executable
+in your path.  See L<http://raku.org/> for more details or how
 to install on other platforms).
 
 =item Clone this repository (e.g. C<git clone https://github.com/zostay/Smack.git>)

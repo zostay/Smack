@@ -20,7 +20,7 @@ class X::Smack::Builder::NoApp is X::Smack::Builder {
 # Plack treated this as a warning. I treat it as an error for two reasons:
 #   (1) It really implies a mistake that will cause confusion, even with the
 #       warning. We might as well stop execution.
-#   (2) Exception handling in Perl 6 is amazingly better than Perl 5, so if they
+#   (2) Exception handling in Raku is amazingly better than Perl 5, so if they
 #       really feel like doing this for some reason, let them catch the
 #       exception and live with the consequences.
 class X::Smack::Builder::UselessMount is X::Smack::Builder {
