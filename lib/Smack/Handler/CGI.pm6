@@ -12,18 +12,18 @@ method run(&app) {
     my $vow = $sent.vow;
 
     my %env = %*ENV,
-        'p6sgi.version'         => Version.new('0.9.Draft'),
-        'p6sgi.inputs'          => $*IN,
-        'p6sgi.errors'          => $*ERR,
-        'p6sgi.url-scheme'      => %*ENV<HTTPS>//'off' ~~ any('on', '1') ?? 'https' !! 'http',
-        'p6sgi.run-once'        => True,
-        'p6sgi.multithread'     => False,
-        'p6sgi.multiprocess'    => True,
-        'p6sgi.nonblocking'     => False,
-        'p6sgi.input.buffered'  => False,
-        'p6sgi.errors.buffered' => True,
-        'p6sgi.encoding'        => 'UTF-8',
-        'p6sgix.output.sent'    => $sent,
+        'wapi.version'         => Version.new('0.9.Draft'),
+        'wapi.inputs'          => $*IN,
+        'wapi.errors'          => $*ERR,
+        'wapi.url-scheme'      => %*ENV<HTTPS>//'off' ~~ any('on', '1') ?? 'https' !! 'http',
+        'wapi.run-once'        => True,
+        'wapi.multithread'     => False,
+        'wapi.multiprocess'    => True,
+        'wapi.nonblocking'     => False,
+        'wapi.input.buffered'  => False,
+        'wapi.errors.buffered' => True,
+        'wapi.encoding'        => 'UTF-8',
+        'wapix.output.sent'    => $sent,
         ;
 
     %env<HTTP_CONTENT_TYPE>:delete;

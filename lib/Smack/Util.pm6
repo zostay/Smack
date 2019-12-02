@@ -56,7 +56,7 @@ sub response-encoding(
 
     $charset
         // response-headers($headers, :%env).Content-Type.charset
-        // (%env.defined && %env<p6sgi.body.encoding>)
+        // (%env.defined && %env<wapi.body.encoding>)
         // $fallback
 }
 
