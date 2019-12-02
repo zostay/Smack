@@ -81,7 +81,7 @@ method raw-content(--> Blob) {
 method content {
     warn "decoding content with non-text Content-Type and no defined charset"
         unless self.Content-Type.is-text
-            || self.Content-Type.primary eq 'application/x-www-form-urlencoded' # this OK too
+            || (self.Content-Type.primary.defined && self.Content-Type.primary eq 'application/x-www-form-urlencoded') # this OK too
             || self.Content-Type.charset.defined;
 
     # RFC 2616 says ISO-8859-1 is assumed when no charset is given
