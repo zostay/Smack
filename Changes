@@ -1,4 +1,4 @@
-{{$NEXT}}
+v0.5.2	2020-07-11
 
     * Fixing a broken uages of signal(SIGQUIT | SIGINT). That used to work, but
       doesn't anymore.
