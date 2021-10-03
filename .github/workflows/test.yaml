@@ -9,7 +9,6 @@ jobs:
         raku-version:
         - latest
         - '2020.01'
-        - '2019.11'
 
         os:
         - macOS-latest
