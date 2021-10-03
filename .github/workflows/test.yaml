@@ -11,8 +11,6 @@ jobs:
         - '2020.01'
 
         os:
-        - macOS-latest
-        - windows-latest
         - ubuntu-latest
 
     runs-on: ${{ matrix.os }}
