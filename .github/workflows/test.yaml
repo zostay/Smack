@@ -8,8 +8,6 @@ jobs:
       matrix:
         raku-version:
         - latest
-        - '2020.01'
-
         os:
         - ubuntu-latest
 
